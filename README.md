@@ -28,15 +28,15 @@ cmake -B build && cmake --build build -j
 
 Opciones de línea de comandos:
 
-| Opción | Significado |
-|---|---|
-| `--usuarios N` | Usuarios a generar (por defecto 100 000) |
-| `--amistades M` | Amistades por usuario nuevo, modelo Barabási-Albert (por defecto 8) |
-| `--publicaciones P` | Publicaciones a generar (por defecto `2*N`) |
-| `--semilla S` | Semilla del generador: los datos son reproducibles |
-| `--vacia` | Arranca sin datos (para registrar usuarios a mano o importar CSV) |
-| `--banco` | Ejecuta solo el banco de pruebas y termina |
-| `--maximo N` | Escala máxima del banco de pruebas |
+| Opción              | Significado                                                         |
+| ------------------- | ------------------------------------------------------------------- |
+| `--usuarios N`      | Usuarios a generar (por defecto 100 000)                            |
+| `--amistades M`     | Amistades por usuario nuevo, modelo Barabási-Albert (por defecto 8) |
+| `--publicaciones P` | Publicaciones a generar (por defecto `2*N`)                         |
+| `--semilla S`       | Semilla del generador: los datos son reproducibles                  |
+| `--vacia`           | Arranca sin datos (para registrar usuarios a mano o importar CSV)   |
+| `--banco`           | Ejecuta solo el banco de pruebas y termina                          |
+| `--maximo N`        | Escala máxima del banco de pruebas                                  |
 
 Ejemplo de la demostración a escala real:
 
@@ -50,27 +50,26 @@ Ejemplo de la demostración a escala real:
 
 Todas están en `src/estructuras/`. Ninguna usa la STL.
 
-| Estructura | Archivo | Dónde se usa | Por qué esa y no otra |
-|---|---|---|---|
-| **Cadena** | `Cadena.h/.cpp` | Nombres, correos, textos | Reemplaza a `std::string`. Con semántica de movimiento para no copiar millones de textos |
-| **Arreglo\<T\>** | `Arreglo.h` | Base de todo | Reemplaza a `std::vector`. Crecimiento geométrico, O(1) amortizado |
-| **ListaEnlazada\<T\>** | `ListaEnlazada.h` | Comentarios de cada publicación | Pocos elementos por publicación y siempre se agregan al final: no desperdicia capacidad reservada × 2 000 000 |
-| **Pila\<T\>** | `Pila.h` | Reconstruir el camino de amistad | El BFS descubre el camino al revés; apilar y desapilar lo invierte sin código extra |
-| **Cola\<T\>** | `Cola.h` | Recorrido BFS | Arreglo **circular**: contiguo en memoria, sin un `new` por elemento |
-| **TablaHash\<K,V\>** | `TablaHash.h` | id→índice, correo→índice | Direccionamiento abierto con sondeo lineal y **tumbas**. Ver §4 |
-| **MonticuloMinimo\<T\>** | `MonticuloMinimo.h` | Rankings top-K | Filtro de K elementos: O(n log K) en vez de O(n log n) |
-| **ArbolAVL\<K,V\>** | `ArbolAVL.h` | Índice de nombres | Único que mantiene **orden**: permite listar alfabéticamente |
-| **Trie** | `Trie.h/.cpp` | Búsqueda por prefijo | Único que responde "todos los que empiezan por MAR" en O(longitud del prefijo) |
-| **GrafoAmistades** | `sistema/GrafoAmistades.h/.cpp` | Amistades | Listas de adyacencia **ordenadas**. Ver §4 |
-| **Ordenamiento** | `Ordenamiento.h` | Listas de adyacencia, rankings | Quicksort (mediana de tres) y mergesort propios |
+| Estructura               | Archivo                         | Dónde se usa                     | Por qué esa y no otra                                                                                         |
+| ------------------------ | ------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------- |
+| **Cadena**               | `Cadena.h/.cpp`                 | Nombres, correos, textos         | Reemplaza a `std::string`. Con semántica de movimiento para no copiar millones de textos                      |
+| **Arreglo\<T\>**         | `Arreglo.h`                     | Base de todo                     | Reemplaza a `std::vector`. Crecimiento geométrico, O(1) amortizado                                            |
+| **ListaEnlazada\<T\>**   | `ListaEnlazada.h`               | Comentarios de cada publicación  | Pocos elementos por publicación y siempre se agregan al final: no desperdicia capacidad reservada × 2 000 000 |
+| **Pila\<T\>**            | `Pila.h`                        | Reconstruir el camino de amistad | El BFS descubre el camino al revés; apilar y desapilar lo invierte sin código extra                           |
+| **Cola\<T\>**            | `Cola.h`                        | Recorrido BFS                    | Arreglo **circular**: contiguo en memoria, sin un `new` por elemento                                          |
+| **TablaHash\<K,V\>**     | `TablaHash.h`                   | id→índice, correo→índice         | Direccionamiento abierto con sondeo lineal y **tumbas**. Ver §4                                               |
+| **MonticuloMinimo\<T\>** | `MonticuloMinimo.h`             | Rankings top-K                   | Filtro de K elementos: O(n log K) en vez de O(n log n)                                                        |
+| **ArbolAVL\<K,V\>**      | `ArbolAVL.h`                    | Índice de nombres                | Único que mantiene **orden**: permite listar alfabéticamente                                                  |
+| **Trie**                 | `Trie.h/.cpp`                   | Búsqueda por prefijo             | Único que responde "todos los que empiezan por MAR" en O(longitud del prefijo)                                |
+| **GrafoAmistades**       | `sistema/GrafoAmistades.h/.cpp` | Amistades                        | Listas de adyacencia **ordenadas**. Ver §4                                                                    |
+| **Ordenamiento**         | `Ordenamiento.h`                | Listas de adyacencia, rankings   | Quicksort (mediana de tres) y mergesort propios                                                               |
 
 Utilidades genéricas propias (`Utilidades.h`): `mover()` (equivalente a `std::move`),
 `intercambiar()`, `minimo()`, `maximo()` y los comparadores. El proyecto no incluye
 `<utility>` ni `<algorithm>`.
 
 **Bibliotecas del sistema usadas:** solo `<cstdio>`, `<cstdlib>`, `<cstring>`,
-`<iostream>`/`<ostream>`/`<iosfwd>` (entrada y salida) y `<chrono>` (medición de
-tiempos, permitido explícitamente por el enunciado). Ninguna es un contenedor.
+`<iostream>`/`<ostream>`/`<iosfwd>` (entrada y salida) y `<chrono>`.
 
 ---
 
@@ -79,21 +78,21 @@ tiempos, permitido explícitamente por el enunciado). Ninguna es un contenedor.
 Todas viven en la fachada `RedSocial` (`src/sistema/RedSocial.h/.cpp`), que es el
 único punto por el que pasa la lógica del sistema.
 
-| # | Funcionalidad del enunciado | Método | Complejidad |
-|---|---|---|---|
-| 1 | Registrar usuarios | `registrarUsuario` | O(1) promedio + O(log n) del AVL |
-| 2 | Eliminar usuarios | `eliminarUsuario` | O(grado + publicaciones) |
-| 3 | Buscar usuarios | `buscarPorId`, `buscarPorCorreo`, `buscarPorNombre`, `buscarPorPrefijo` | O(1) / O(1) / O(log n) / O(longitud) |
-| 4 | Crear publicaciones | `crearPublicacion` | O(1) amortizado |
-| 5 | Eliminar publicaciones | `eliminarPublicacion` | O(1) promedio |
-| 6 | Agregar amigos | `agregarAmigo` | O(grado) |
-| 7 | Eliminar amigos | `eliminarAmigo` | O(grado) |
-| 8 | Camino de amistad | `caminoDeAmistad` → `GrafoAmistades::caminoMasCorto` | BFS bidireccional |
-| 9 | Amigos en común | `amigosEnComun` | O(gA + gB) por intersección |
-| 10 | Sugerencias de amistad | `sugerenciasDeAmistad` | O(Σ grados de mis amigos + C log K) |
-| 11 | Publicaciones de un usuario | `publicacionesDe` | O(publicaciones del usuario) |
-| 12 | Usuarios más activos | `usuariosMasActivos` | O(n log K) |
-| 13 | Publicaciones con más reacciones | `publicacionesConMasReacciones` | O(p log K) |
+| #   | Funcionalidad del enunciado      | Método                                                                  | Complejidad                          |
+| --- | -------------------------------- | ----------------------------------------------------------------------- | ------------------------------------ |
+| 1   | Registrar usuarios               | `registrarUsuario`                                                      | O(1) promedio + O(log n) del AVL     |
+| 2   | Eliminar usuarios                | `eliminarUsuario`                                                       | O(grado + publicaciones)             |
+| 3   | Buscar usuarios                  | `buscarPorId`, `buscarPorCorreo`, `buscarPorNombre`, `buscarPorPrefijo` | O(1) / O(1) / O(log n) / O(longitud) |
+| 4   | Crear publicaciones              | `crearPublicacion`                                                      | O(1) amortizado                      |
+| 5   | Eliminar publicaciones           | `eliminarPublicacion`                                                   | O(1) promedio                        |
+| 6   | Agregar amigos                   | `agregarAmigo`                                                          | O(grado)                             |
+| 7   | Eliminar amigos                  | `eliminarAmigo`                                                         | O(grado)                             |
+| 8   | Camino de amistad                | `caminoDeAmistad` → `GrafoAmistades::caminoMasCorto`                    | BFS bidireccional                    |
+| 9   | Amigos en común                  | `amigosEnComun`                                                         | O(gA + gB) por intersección          |
+| 10  | Sugerencias de amistad           | `sugerenciasDeAmistad`                                                  | O(Σ grados de mis amigos + C log K)  |
+| 11  | Publicaciones de un usuario      | `publicacionesDe`                                                       | O(publicaciones del usuario)         |
+| 12  | Usuarios más activos             | `usuariosMasActivos`                                                    | O(n log K)                           |
+| 13  | Publicaciones con más reacciones | `publicacionesConMasReacciones`                                         | O(p log K)                           |
 
 Extras: `listarEnOrdenAlfabetico` (recorrido en orden del AVL), exportación e
 importación CSV, estadísticas del sistema y banco de pruebas.
@@ -132,9 +131,9 @@ arista) y ordenar una sola vez al terminar.
 ### 4.3 BFS bidireccional
 
 En vez de una búsqueda desde el origen, se lanzan dos a la vez —una desde cada
-extremo— y se para cuando se encuentran. Si el grado medio es *g* y la distancia
-*d*, un BFS normal visita ~*g^d* nodos; dos búsquedas de profundidad *d/2* visitan
-~2·*g^(d/2)*.
+extremo— y se para cuando se encuentran. Si el grado medio es _g_ y la distancia
+_d_, un BFS normal visita ~_g^d_ nodos; dos búsquedas de profundidad _d/2_ visitan
+~2·_g^(d/2)_.
 
 En cada paso se expande el frente **más pequeño**, lo que evita quedar atrapado
 explorando el vecindario de un usuario con miles de amigos. Se expande el nivel
@@ -169,7 +168,7 @@ una **ley de potencias**: casi todos tienen pocos amigos y unos pocos "hubs" tie
 miles.
 
 Barabási-Albert reproduce eso con una regla simple: cada usuario nuevo elige a sus
-*m* amigos con probabilidad proporcional a los amigos que ya tiene cada candidato.
+_m_ amigos con probabilidad proporcional a los amigos que ya tiene cada candidato.
 Para hacerlo en O(1) por sorteo se usa una **bolsa de repeticiones**: un arreglo
 donde cada nodo aparece tantas veces como amigos tiene, del que basta sacar un
 elemento al azar.
@@ -188,20 +187,20 @@ los mismos datos en cualquier máquina.
 `./redsocial --banco --maximo 1000000` (los resultados se exportan a
 `benchmark.csv` para graficarlos). Tiempo **por operación**, en microsegundos:
 
-| Operación | 10 000 | 100 000 | 1 000 000 | Comportamiento |
-|---|---|---|---|---|
-| Consultar TablaHash | 0.0039 | 0.0055 | 0.0157 | **O(1)** (el leve aumento es caché) |
-| Consultar ArbolAVL | 0.0535 | 0.0828 | 0.1597 | **O(log n)** |
-| Construir TablaHash (por clave) | 0.0081 | 0.0058 | 0.0115 | O(1) amortizado |
-| Construir ArbolAVL (por clave) | 0.1352 | 0.1719 | 0.3437 | O(log n) |
-| Buscar por ID | 0.0119 | 0.0106 | 0.0433 | O(1) |
-| Comprobar amistad (binaria) | 0.0289 | 0.0546 | 0.0655 | O(log grado) |
-| Amigos en común | 0.1381 | 0.1911 | 0.2107 | O(gA + gB) |
-| **Camino BFS bidireccional** | **1.92** | **7.42** | **95.3** | |
-| **Camino BFS clásico** | **34.9** | **425.9** | **7 854.0** | **82× más lento** |
-| Sugerencias de amistad | 3.69 | 4.82 | 14.8 | |
-| Quicksort propio | 0.0261 | 0.0326 | 0.0394 | O(n log n) |
-| Mergesort propio | 0.0385 | 0.0460 | 0.0579 | O(n log n), ~1.5× más lento pero estable |
+| Operación                       | 10 000   | 100 000   | 1 000 000   | Comportamiento                           |
+| ------------------------------- | -------- | --------- | ----------- | ---------------------------------------- |
+| Consultar TablaHash             | 0.0039   | 0.0055    | 0.0157      | **O(1)** (el leve aumento es caché)      |
+| Consultar ArbolAVL              | 0.0535   | 0.0828    | 0.1597      | **O(log n)**                             |
+| Construir TablaHash (por clave) | 0.0081   | 0.0058    | 0.0115      | O(1) amortizado                          |
+| Construir ArbolAVL (por clave)  | 0.1352   | 0.1719    | 0.3437      | O(log n)                                 |
+| Buscar por ID                   | 0.0119   | 0.0106    | 0.0433      | O(1)                                     |
+| Comprobar amistad (binaria)     | 0.0289   | 0.0546    | 0.0655      | O(log grado)                             |
+| Amigos en común                 | 0.1381   | 0.1911    | 0.2107      | O(gA + gB)                               |
+| **Camino BFS bidireccional**    | **1.92** | **7.42**  | **95.3**    |                                          |
+| **Camino BFS clásico**          | **34.9** | **425.9** | **7 854.0** | **82× más lento**                        |
+| Sugerencias de amistad          | 3.69     | 4.82      | 14.8        |                                          |
+| Quicksort propio                | 0.0261   | 0.0326    | 0.0394      | O(n log n)                               |
+| Mergesort propio                | 0.0385   | 0.0460    | 0.0579      | O(n log n), ~1.5× más lento pero estable |
 
 Construcción completa de la red de 1 000 000 de usuarios + 8 000 000 de amistades +
 2 000 000 de publicaciones: **2.7 segundos**.
