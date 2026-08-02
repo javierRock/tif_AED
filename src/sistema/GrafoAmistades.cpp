@@ -10,9 +10,9 @@ namespace aed {
 GrafoAmistades::GrafoAmistades()
     : _cantidadAristas(0), _selloActual(0), _selloSugerencias(0) {}
 
-// ---------------------------------------------------------------------------
-// Nodos
-// ---------------------------------------------------------------------------
+
+
+
 void GrafoAmistades::establecerCantidadNodos(int cantidad) {
     _adyacencia.redimensionar(cantidad);
 }
@@ -32,15 +32,15 @@ const Arreglo<int>& GrafoAmistades::vecinos(int nodo) const {
     return _adyacencia[nodo];
 }
 
-// ---------------------------------------------------------------------------
-// Aristas
-// ---------------------------------------------------------------------------
+
+
+
 bool GrafoAmistades::agregarArista(int a, int b) {
     int total = _adyacencia.tamanio();
     if (a < 0 || b < 0 || a >= total || b >= total || a == b) return false;
-    if (_adyacencia[a].buscarBinario(b) >= 0) return false;  // ya eran amigos
+    if (_adyacencia[a].buscarBinario(b) >= 0) return false;
 
-    // Al ser una relacion simetrica, la arista se guarda en ambas listas.
+
     _adyacencia[a].insertarOrdenado(b);
     _adyacencia[b].insertarOrdenado(a);
     ++_cantidadAristas;
@@ -55,8 +55,8 @@ bool GrafoAmistades::eliminarArista(int a, int b) {
     if (posicionEnA < 0) return false;
     int posicionEnB = _adyacencia[b].buscarBinario(a);
 
-    // eliminarEn() conserva el orden, requisito para seguir usando busqueda
-    // binaria en las siguientes consultas.
+
+
     _adyacencia[a].eliminarEn(posicionEnA);
     if (posicionEnB >= 0) _adyacencia[b].eliminarEn(posicionEnB);
     --_cantidadAristas;
@@ -66,7 +66,7 @@ bool GrafoAmistades::eliminarArista(int a, int b) {
 bool GrafoAmistades::sonAdyacentes(int a, int b) const {
     int total = _adyacencia.tamanio();
     if (a < 0 || b < 0 || a >= total || b >= total) return false;
-    // Se busca en la lista mas corta: menos comparaciones.
+
     if (_adyacencia[a].tamanio() <= _adyacencia[b].tamanio()) {
         return _adyacencia[a].buscarBinario(b) >= 0;
     }
@@ -76,8 +76,8 @@ bool GrafoAmistades::sonAdyacentes(int a, int b) const {
 void GrafoAmistades::aislarNodo(int nodo) {
     if (nodo < 0 || nodo >= _adyacencia.tamanio()) return;
 
-    // Para cada amigo hay que borrar la referencia de vuelta, si no quedarian
-    // aristas "colgando" apuntando a un usuario inexistente.
+
+
     Arreglo<int>& lista = _adyacencia[nodo];
     for (int i = 0; i < lista.tamanio(); ++i) {
         int amigo = lista[i];
@@ -88,9 +88,9 @@ void GrafoAmistades::aislarNodo(int nodo) {
     lista.liberar();
 }
 
-// ---------------------------------------------------------------------------
-// Carga masiva
-// ---------------------------------------------------------------------------
+
+
+
 void GrafoAmistades::agregarAristaSinOrdenar(int a, int b) {
     int total = _adyacencia.tamanio();
     if (a < 0 || b < 0 || a >= total || b >= total || a == b) return;
@@ -108,16 +108,16 @@ void GrafoAmistades::ordenarYLimpiarListas() {
         }
         sumaGrados += lista.tamanio();
     }
-    // En un grafo no dirigido cada arista aparece en dos listas.
+
     _cantidadAristas = sumaGrados / 2;
 }
 
-// ---------------------------------------------------------------------------
-// Espacios de trabajo de los recorridos
-// ---------------------------------------------------------------------------
+
+
+
 void GrafoAmistades::prepararEspaciosDeTrabajo() {
     int n = _adyacencia.tamanio();
-    if (_selloLadoA.tamanio() == n) return;  // ya estaban listos
+    if (_selloLadoA.tamanio() == n) return;
 
     _selloLadoA.redimensionar(n);
     _distanciaLadoA.redimensionar(n);
@@ -128,8 +128,8 @@ void GrafoAmistades::prepararEspaciosDeTrabajo() {
     _marcaSugerencia.redimensionar(n);
     _conteoSugerencia.redimensionar(n);
 
-    // Los sellos arrancan en 0 y el contador de consultas en 1, de modo que
-    // ninguna posicion aparece como visitada al inicio.
+
+
     _selloLadoA.rellenar(0);
     _selloLadoB.rellenar(0);
     _marcaSugerencia.rellenar(0);
@@ -137,19 +137,19 @@ void GrafoAmistades::prepararEspaciosDeTrabajo() {
     _selloSugerencias = 0;
 }
 
-// ---------------------------------------------------------------------------
-// BFS BIDIRECCIONAL
-//
-// La idea: en vez de una unica busqueda que crece desde el origen, se lanzan
-// dos busquedas simultaneas, una desde cada extremo, y se para cuando se
-// encuentran. Si el grado medio es g y la distancia es d, un BFS normal
-// visita del orden de g^d nodos; dos busquedas de profundidad d/2 visitan
-// 2*g^(d/2). En una red social real (donde casi todos estan a 5 o 6 saltos)
-// esa diferencia son varios ordenes de magnitud.
-//
-// En cada iteracion se expande el frente MAS PEQUENO, que es lo que evita
-// quedar atrapado explorando el vecindario de un usuario muy popular.
-// ---------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
+
 bool GrafoAmistades::caminoMasCorto(int origen, int destino, Arreglo<int>& camino) {
     camino.limpiar();
     int total = _adyacencia.tamanio();
@@ -186,7 +186,7 @@ bool GrafoAmistades::caminoMasCorto(int origen, int destino, Arreglo<int>& camin
         }
     }
 
-    if (encuentro < 0) return false;  // estan en componentes distintas
+    if (encuentro < 0) return false;
     reconstruirCamino(encuentro, camino);
     return true;
 }
@@ -205,13 +205,13 @@ int GrafoAmistades::expandirNivel(Arreglo<int>& frente, Arreglo<int>& selloPropi
 
         for (int k = 0; k < listaVecinos.tamanio(); ++k) {
             int vecino = listaVecinos[k];
-            if (selloPropio[vecino] == _selloActual) continue;  // ya visitado por este lado
+            if (selloPropio[vecino] == _selloActual) continue;
 
             selloPropio[vecino] = _selloActual;
             distanciaPropia[vecino] = distanciaPropia[actual] + 1;
             padrePropio[vecino] = actual;
 
-            // Si el otro lado ya habia llegado a este nodo, tenemos un camino.
+
             if (selloOpuesto[vecino] == _selloActual) {
                 int longitud = distanciaPropia[vecino] + distanciaOpuesta[vecino];
                 if (mejorEncuentro < 0 || longitud < mejorLongitud) {
@@ -223,31 +223,31 @@ int GrafoAmistades::expandirNivel(Arreglo<int>& frente, Arreglo<int>& selloPropi
         }
     }
 
-    // Se completa TODO el nivel antes de devolver el encuentro y se elige el
-    // de menor longitud total: parar en el primer contacto podria dar un
-    // camino con un salto de mas.
+
+
+
     intercambiar(frente, _frenteAuxiliar);
     return mejorEncuentro;
 }
 
 void GrafoAmistades::reconstruirCamino(int encuentro, Arreglo<int>& camino) const {
-    // Del encuentro hacia el origen los padres van "al reves", asi que se
-    // apilan para desapilarlos ya en el orden correcto.
+
+
     Pila<int> pila;
     for (int actual = encuentro; actual != -1; actual = _padreLadoA[actual]) {
         pila.apilar(actual);
     }
     while (!pila.vacia()) camino.agregar(pila.desapilar());
 
-    // Del encuentro hacia el destino los padres ya van en el orden correcto.
+
     for (int actual = _padreLadoB[encuentro]; actual != -1; actual = _padreLadoB[actual]) {
         camino.agregar(actual);
     }
 }
 
-// ---------------------------------------------------------------------------
-// BFS clasico (una sola direccion), usado como referencia de comparacion.
-// ---------------------------------------------------------------------------
+
+
+
 bool GrafoAmistades::caminoMasCortoBFSSimple(int origen, int destino, Arreglo<int>& camino) {
     camino.limpiar();
     int total = _adyacencia.tamanio();
@@ -293,11 +293,11 @@ bool GrafoAmistades::caminoMasCortoBFSSimple(int origen, int destino, Arreglo<in
     return true;
 }
 
-// ---------------------------------------------------------------------------
-// Amigos en comun: interseccion de dos listas ordenadas con dos indices que
-// avanzan a la vez. Es el mismo esquema que la fase de mezcla del mergesort.
-// Coste O(grado(a) + grado(b)) y cero memoria auxiliar.
-// ---------------------------------------------------------------------------
+
+
+
+
+
 void GrafoAmistades::amigosEnComun(int a, int b, Arreglo<int>& resultado) const {
     resultado.limpiar();
     int total = _adyacencia.tamanio();
@@ -314,25 +314,25 @@ void GrafoAmistades::amigosEnComun(int a, int b, Arreglo<int>& resultado) const 
             ++i;
             ++j;
         } else if (listaA[i] < listaB[j]) {
-            ++i;  // avanza la lista que va "por detras"
+            ++i;
         } else {
             ++j;
         }
     }
 }
 
-// ---------------------------------------------------------------------------
-// Sugerencias de amistad: "amigos de mis amigos".
-//
-// Se recorren los amigos de mis amigos y se cuenta cuantas veces aparece cada
-// candidato: esa cuenta es exactamente el numero de amigos que tenemos en
-// comun con el. Los candidatos se filtran quitando al propio usuario y a
-// quienes ya son amigos, y al final se seleccionan los K mejores con un
-// monticulo de minimos.
-//
-// Coste O(suma de grados de mis amigos + C log K), con C = numero de
-// candidatos distintos.
-// ---------------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
+
+
 void GrafoAmistades::sugerirAmistades(int nodo, int cantidad,
                                       Arreglo<SugerenciaAmistad>& salida) {
     salida.limpiar();
@@ -342,9 +342,9 @@ void GrafoAmistades::sugerirAmistades(int nodo, int cantidad,
     ++_selloSugerencias;
     _candidatos.limpiar();
 
-    // Se marcan con conteo -1 el propio usuario y sus amigos actuales: son los
-    // que hay que descartar. Marcarlos de antemano convierte el filtro en una
-    // comprobacion O(1) dentro del bucle principal.
+
+
+
     const Arreglo<int>& misAmigos = _adyacencia[nodo];
     _marcaSugerencia[nodo] = _selloSugerencias;
     _conteoSugerencia[nodo] = -1;
@@ -359,7 +359,7 @@ void GrafoAmistades::sugerirAmistades(int nodo, int cantidad,
             int candidato = amigosDelAmigo[k];
 
             if (_marcaSugerencia[candidato] == _selloSugerencias) {
-                if (_conteoSugerencia[candidato] < 0) continue;  // descartado
+                if (_conteoSugerencia[candidato] < 0) continue;
                 ++_conteoSugerencia[candidato];
             } else {
                 _marcaSugerencia[candidato] = _selloSugerencias;
@@ -369,8 +369,8 @@ void GrafoAmistades::sugerirAmistades(int nodo, int cantidad,
         }
     }
 
-    // Seleccion de los K mejores: el monticulo nunca guarda mas de K
-    // elementos, asi que la memoria es O(K) aunque haya millones de candidatos.
+
+
     MonticuloMinimo<SugerenciaAmistad> mejores(cantidad);
     for (int i = 0; i < _candidatos.tamanio(); ++i) {
         int candidato = _candidatos[i];
@@ -385,9 +385,9 @@ void GrafoAmistades::sugerirAmistades(int nodo, int cantidad,
     mejores.volcarDeMayorAMenor(salida);
 }
 
-// ---------------------------------------------------------------------------
-// Estadisticas
-// ---------------------------------------------------------------------------
+
+
+
 int GrafoAmistades::gradoMaximo() const {
     int maximo = 0;
     for (int i = 0; i < _adyacencia.tamanio(); ++i) {
@@ -410,4 +410,4 @@ long long GrafoAmistades::memoriaAproximadaBytes() const {
     return total;
 }
 
-}  // namespace aed
+}

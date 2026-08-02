@@ -1,15 +1,12 @@
-# Artefactos de compilacion
 build/
 cmake-build*/
 redsocial
 pruebas_aed
 *.o
 
-# Datos y mediciones generados en tiempo de ejecucion
 benchmark.csv
 usuarios.csv
 amistades.csv
 publicaciones.csv
 
-# Documentacion local desactualizada
 docs/

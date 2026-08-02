@@ -1,14 +1,14 @@
-// ============================================================================
-//  Pila.h
-//  Pila LIFO construida sobre nuestro Arreglo dinamico.
-//
-//  Se usa para reconstruir el camino de amistad: el BFS descubre el camino
-//  desde el destino hacia el origen siguiendo los "padres", de modo que hay
-//  que invertirlo. Apilar y luego desapilar hace esa inversion de forma
-//  natural y sin codigo adicional.
-//
-//  Complejidades: apilar() y desapilar() son O(1) amortizado.
-// ============================================================================
+
+
+
+
+
+
+
+
+
+
+
 #pragma once
 
 #include "Arreglo.h"
@@ -38,4 +38,4 @@ private:
     Arreglo<T> _datos;
 };
 
-}  // namespace aed
+}

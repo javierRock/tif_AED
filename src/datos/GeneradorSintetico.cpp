@@ -6,10 +6,10 @@ namespace aed {
 
 namespace {
 
-// Vocabulario base. Combinando 48 nombres con 48 apellidos salen 2304 nombres
-// completos distintos, suficiente variedad para que el AVL de nombres y el
-// trie de prefijos trabajen con datos realistas (muchos usuarios comparten
-// nombre, igual que en una red social de verdad).
+
+
+
+
 const char* const NOMBRES[] = {
     "Ana",    "Luis",   "Maria",  "Carlos", "Sofia",   "Jorge",   "Lucia",   "Miguel",
     "Elena",  "Pedro",  "Carmen", "Diego",  "Rosa",    "Javier",  "Paula",   "Andres",
@@ -61,7 +61,7 @@ const int CANTIDAD_PLANTILLAS =
     static_cast<int>(sizeof(PLANTILLAS_TEXTO) / sizeof(PLANTILLAS_TEXTO[0]));
 const int CANTIDAD_COMENTARIOS = static_cast<int>(sizeof(COMENTARIOS) / sizeof(COMENTARIOS[0]));
 
-/// Imprime una barra de avance cada 10 % del trabajo.
+
 void informarAvance(const char* etapa, int hechos, int total, bool activo) {
     if (!activo || total <= 0) return;
     int paso = total / 10;
@@ -74,13 +74,13 @@ void informarAvance(const char* etapa, int hechos, int total, bool activo) {
 Fecha fechaAleatoria(GeneradorAleatorio& azar, int anioMinimo, int anioMaximo) {
     int anio = azar.enteroEntre(anioMinimo, anioMaximo);
     int mes = azar.enteroEntre(1, 12);
-    int dia = azar.enteroEntre(1, 28);  // 28 evita tener que validar cada mes
+    int dia = azar.enteroEntre(1, 28);
     return Fecha(anio, mes, dia);
 }
 
-}  // namespace
+}
 
-// ---------------------------------------------------------------------------
+
 void GeneradorSintetico::generar(RedSocial& red, const ParametrosGeneracion& parametros) {
     GeneradorAleatorio azar(parametros.semilla);
 
@@ -91,10 +91,10 @@ void GeneradorSintetico::generar(RedSocial& red, const ParametrosGeneracion& par
     generarInteracciones(red, parametros, azar);
 }
 
-// ---------------------------------------------------------------------------
-// Usuarios: nombre y apellido de los catalogos, correo unico gracias al
-// numero de usuario, y una fecha de registro repartida entre 2008 y 2026.
-// ---------------------------------------------------------------------------
+
+
+
+
 void GeneradorSintetico::generarUsuarios(RedSocial& red, const ParametrosGeneracion& parametros,
                                          GeneradorAleatorio& azar) {
     char bufferCorreo[96];
@@ -107,7 +107,7 @@ void GeneradorSintetico::generarUsuarios(RedSocial& red, const ParametrosGenerac
         nombreCompleto.agregar(" ");
         nombreCompleto.agregar(apellido);
 
-        // El numero de usuario garantiza que el correo nunca se repita.
+
         std::snprintf(bufferCorreo, sizeof(bufferCorreo), "%s.%s%d@redsocial.pe",
                       nombrePila, apellido, i);
         String correo(bufferCorreo);
@@ -118,9 +118,9 @@ void GeneradorSintetico::generarUsuarios(RedSocial& red, const ParametrosGenerac
     if (parametros.mostrarProgreso) std::printf("\n");
 }
 
-// ---------------------------------------------------------------------------
-// Amistades siguiendo el modelo Barabasi-Albert.
-// ---------------------------------------------------------------------------
+
+
+
 void GeneradorSintetico::generarAmistades(RedSocial& red, const ParametrosGeneracion& parametros,
                                           GeneradorAleatorio& azar) {
     GrafoAmistades& grafo = red.grafo();
@@ -130,14 +130,14 @@ void GeneradorSintetico::generarAmistades(RedSocial& red, const ParametrosGenera
     if (cantidadNodos < 2 || m < 1) return;
     if (m >= cantidadNodos) m = cantidadNodos - 1;
 
-    // La bolsa contiene cada nodo repetido tantas veces como amigos tiene.
-    // Su tamano final es 2 * numero de aristas, por eso se reserva de golpe.
+
+
     Arreglo<int> bolsa;
     bolsa.reservar(2 * cantidadNodos * m + 4 * m * m);
 
-    // --- Nucleo inicial: los primeros m+1 nodos, todos amigos entre si ------
-    // Hace falta un punto de partida con aristas, porque si la bolsa estuviera
-    // vacia no habria de donde sortear.
+
+
+
     int nucleo = m + 1;
     if (nucleo > cantidadNodos) nucleo = cantidadNodos;
     for (int i = 0; i < nucleo; ++i) {
@@ -148,13 +148,13 @@ void GeneradorSintetico::generarAmistades(RedSocial& red, const ParametrosGenera
         }
     }
 
-    // --- Resto de nodos: conexion preferencial ------------------------------
+
     Arreglo<int> elegidos(m);
     for (int nodo = nucleo; nodo < cantidadNodos; ++nodo) {
         elegidos.limpiar();
 
-        // Se sortean m destinos DISTINTOS de la bolsa. El limite de intentos
-        // evita quedarse dando vueltas si por azar salen siempre repetidos.
+
+
         int intentos = 0;
         int maximoIntentos = 20 * m + 50;
         while (elegidos.tamanio() < m && intentos < maximoIntentos) {
@@ -163,7 +163,7 @@ void GeneradorSintetico::generarAmistades(RedSocial& red, const ParametrosGenera
             if (candidato == nodo || elegidos.contiene(candidato)) continue;
             elegidos.agregar(candidato);
         }
-        // Plan alternativo: completar con nodos anteriores tomados al azar.
+
         while (elegidos.tamanio() < m) {
             int candidato = azar.enteroMenorQue(nodo);
             if (!elegidos.contiene(candidato)) elegidos.agregar(candidato);
@@ -176,18 +176,18 @@ void GeneradorSintetico::generarAmistades(RedSocial& red, const ParametrosGenera
         }
         informarAvance("Amistades", nodo + 1, cantidadNodos, parametros.mostrarProgreso);
     }
-    bolsa.liberar();  // 64 MB que ya no hacen falta
+    bolsa.liberar();
 
-    // Las aristas se agregaron sin orden por velocidad; ahora se ordenan las
-    // listas de una sola vez y se eliminan los duplicados.
+
+
     grafo.ordenarYLimpiarListas();
     red.sincronizarContadoresDeAmigos();
     if (parametros.mostrarProgreso) std::printf("\n");
 }
 
-// ---------------------------------------------------------------------------
-// Publicaciones repartidas al azar entre los usuarios.
-// ---------------------------------------------------------------------------
+
+
+
 void GeneradorSintetico::generarPublicaciones(RedSocial& red,
                                               const ParametrosGeneracion& parametros,
                                               GeneradorAleatorio& azar) {
@@ -210,13 +210,13 @@ void GeneradorSintetico::generarPublicaciones(RedSocial& red,
     if (parametros.mostrarProgreso) std::printf("\n");
 }
 
-// ---------------------------------------------------------------------------
-// Likes y comentarios.
-//
-// Los likes se cargan en bloque con agregarLikes(): sumar cien millones de
-// reacciones de una en una implicaria cien millones de busquedas en la tabla
-// hash sin aportar nada al resultado.
-// ---------------------------------------------------------------------------
+
+
+
+
+
+
+
 void GeneradorSintetico::generarInteracciones(RedSocial& red,
                                               const ParametrosGeneracion& parametros,
                                               GeneradorAleatorio& azar) {
@@ -247,4 +247,4 @@ void GeneradorSintetico::generarInteracciones(RedSocial& red,
     if (parametros.mostrarProgreso) std::printf("\n");
 }
 
-}  // namespace aed
+}

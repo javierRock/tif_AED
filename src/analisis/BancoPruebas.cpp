@@ -21,7 +21,7 @@ void anotar(Arreglo<ResultadoPrueba>& resultados, const char* operacion, long lo
     resultados.agregar(mover(resultado));
 }
 
-/// Elige al azar 'cantidad' indices de usuarios activos.
+
 void elegirUsuariosAlAzar(RedSocial& red, GeneradorAleatorio& azar, int cantidad,
                           Arreglo<int>& indices) {
     indices.limpiar();
@@ -37,9 +37,9 @@ void elegirUsuariosAlAzar(RedSocial& red, GeneradorAleatorio& azar, int cantidad
     }
 }
 
-}  // namespace
+}
 
-// ===========================================================================
+
 void BancoPruebas::medirOperaciones(RedSocial& red, Arreglo<ResultadoPrueba>& resultados) {
     GeneradorAleatorio azar(987654321ULL);
     const long long escala = red.cantidadUsuariosActivos();
@@ -47,17 +47,17 @@ void BancoPruebas::medirOperaciones(RedSocial& red, Arreglo<ResultadoPrueba>& re
 
     Cronometro reloj;
 
-    // --- Muestra de usuarios sobre la que se haran las consultas -----------
+
     const int CONSULTAS = 100000;
-    const int CONSULTAS_PESADAS = 200;  // BFS y sugerencias son mucho mas caras
+    const int CONSULTAS_PESADAS = 200;
 
     Arreglo<int> muestra;
     elegirUsuariosAlAzar(red, azar, CONSULTAS, muestra);
     if (muestra.vacio()) return;
 
-    // -----------------------------------------------------------------------
-    //  1. Busqueda por ID en la TABLA HASH  ->  O(1) esperado
-    // -----------------------------------------------------------------------
+
+
+
     long long encontrados = 0;
     reloj.iniciar();
     for (int i = 0; i < muestra.tamanio(); ++i) {
@@ -66,9 +66,9 @@ void BancoPruebas::medirOperaciones(RedSocial& red, Arreglo<ResultadoPrueba>& re
     }
     anotar(resultados, "Buscar por ID (TablaHash)", escala, muestra.tamanio(), reloj.milisegundos());
 
-    // -----------------------------------------------------------------------
-    //  2. Busqueda por CORREO en la TABLA HASH  ->  O(1) con clave de texto
-    // -----------------------------------------------------------------------
+
+
+
     Arreglo<String> correos;
     Arreglo<String> nombres;
     int muestraTexto = muestra.tamanio() < 20000 ? muestra.tamanio() : 20000;
@@ -86,16 +86,16 @@ void BancoPruebas::medirOperaciones(RedSocial& red, Arreglo<ResultadoPrueba>& re
     anotar(resultados, "Buscar por correo (TablaHash)", escala, correos.tamanio(),
            reloj.milisegundos());
 
-    // -----------------------------------------------------------------------
-    //  3. Busqueda por NOMBRE en el ARBOL AVL  ->  O(log n) + homonimos
-    //
-    //     OJO AL INTERPRETAR ESTE DATO: localizar el nombre en el arbol es
-    //     O(log n), pero despues hay que COPIAR la lista de todos los usuarios
-    //     que se llaman igual. Como el catalogo de nombres es limitado, a un
-    //     millon de usuarios cada nombre tiene cientos de homonimos y es esa
-    //     copia la que domina el tiempo, no el arbol.
-    //     La comparacion limpia entre estructuras es la del punto 4bis.
-    // -----------------------------------------------------------------------
+
+
+
+
+
+
+
+
+
+
     Arreglo<int> coincidencias;
     reloj.iniciar();
     for (int i = 0; i < nombres.tamanio(); ++i) {
@@ -104,9 +104,9 @@ void BancoPruebas::medirOperaciones(RedSocial& red, Arreglo<ResultadoPrueba>& re
     anotar(resultados, "Buscar nombre+homonimos (AVL)", escala, nombres.tamanio(),
            reloj.milisegundos());
 
-    // -----------------------------------------------------------------------
-    //  4. Busqueda por PREFIJO en el TRIE  ->  O(longitud del prefijo)
-    // -----------------------------------------------------------------------
+
+
+
     const int CONSULTAS_PREFIJO = 5000;
     reloj.iniciar();
     for (int i = 0; i < CONSULTAS_PREFIJO; ++i) {
@@ -116,20 +116,20 @@ void BancoPruebas::medirOperaciones(RedSocial& red, Arreglo<ResultadoPrueba>& re
     anotar(resultados, "Buscar por prefijo (Trie)", escala, CONSULTAS_PREFIJO,
            reloj.milisegundos());
 
-    // -----------------------------------------------------------------------
-    //  4bis. COMPARACION DIRECTA: TablaHash frente a ArbolAVL
-    //
-    //  Las dos estructuras se llenan con EXACTAMENTE las mismas claves y se
-    //  consultan con la misma secuencia de busquedas. Al eliminar cualquier
-    //  otra diferencia, lo que queda medido es solo el comportamiento de cada
-    //  estructura: O(1) constante frente a O(log n) creciente.
-    // -----------------------------------------------------------------------
+
+
+
+
+
+
+
+
     {
         int cantidadClaves = static_cast<int>(escala);
         const int CONSULTAS_COMPARATIVA = 200000;
 
-        // Las claves se mezclan para que ninguna de las dos estructuras se
-        // beneficie de recibirlas en orden creciente.
+
+
         Arreglo<int> claves(cantidadClaves);
         for (int i = 0; i < cantidadClaves; ++i) claves.agregar(i);
         for (int i = cantidadClaves - 1; i > 0; --i) {
@@ -164,9 +164,9 @@ void BancoPruebas::medirOperaciones(RedSocial& red, Arreglo<ResultadoPrueba>& re
                reloj.milisegundos());
     }
 
-    // -----------------------------------------------------------------------
-    //  5. Comprobar amistad  ->  busqueda binaria O(log grado)
-    // -----------------------------------------------------------------------
+
+
+
     reloj.iniciar();
     for (int i = 0; i + 1 < muestra.tamanio(); i += 2) {
         red.grafo().sonAdyacentes(muestra[i], muestra[i + 1]);
@@ -174,18 +174,18 @@ void BancoPruebas::medirOperaciones(RedSocial& red, Arreglo<ResultadoPrueba>& re
     anotar(resultados, "Comprobar amistad (bin.)", escala, muestra.tamanio() / 2,
            reloj.milisegundos());
 
-    // -----------------------------------------------------------------------
-    //  6. Amigos en comun  ->  interseccion O(gA + gB)
-    // -----------------------------------------------------------------------
+
+
+
     reloj.iniciar();
     for (int i = 0; i + 1 < muestra.tamanio(); i += 2) {
         red.grafo().amigosEnComun(muestra[i], muestra[i + 1], coincidencias);
     }
     anotar(resultados, "Amigos en comun", escala, muestra.tamanio() / 2, reloj.milisegundos());
 
-    // -----------------------------------------------------------------------
-    //  7. Camino de amistad: BFS BIDIRECCIONAL frente a BFS CLASICO
-    // -----------------------------------------------------------------------
+
+
+
     Arreglo<int> camino;
     int paresPesados = CONSULTAS_PESADAS;
     if (paresPesados * 2 > muestra.tamanio()) paresPesados = muestra.tamanio() / 2;
@@ -202,9 +202,9 @@ void BancoPruebas::medirOperaciones(RedSocial& red, Arreglo<ResultadoPrueba>& re
     }
     anotar(resultados, "Camino BFS clasico", escala, paresPesados, reloj.milisegundos());
 
-    // -----------------------------------------------------------------------
-    //  8. Sugerencias de amistad (amigos de mis amigos + monticulo)
-    // -----------------------------------------------------------------------
+
+
+
     Arreglo<SugerenciaAmistad> sugerencias;
     reloj.iniciar();
     for (int i = 0; i < paresPesados; ++i) {
@@ -212,9 +212,9 @@ void BancoPruebas::medirOperaciones(RedSocial& red, Arreglo<ResultadoPrueba>& re
     }
     anotar(resultados, "Sugerencias de amistad", escala, paresPesados, reloj.milisegundos());
 
-    // -----------------------------------------------------------------------
-    //  9. Rankings top-K con monticulo de minimos  ->  O(n log K)
-    // -----------------------------------------------------------------------
+
+
+
     Arreglo<ElementoRanking> ranking;
     const int REPETICIONES_RANKING = 5;
 
@@ -227,9 +227,9 @@ void BancoPruebas::medirOperaciones(RedSocial& red, Arreglo<ResultadoPrueba>& re
     for (int i = 0; i < REPETICIONES_RANKING; ++i) red.publicacionesConMasReacciones(10, ranking);
     anotar(resultados, "Top 10 publicaciones", escala, REPETICIONES_RANKING, reloj.milisegundos());
 
-    // -----------------------------------------------------------------------
-    // 10. Alta y baja de amistades (insercion y borrado ordenado)
-    // -----------------------------------------------------------------------
+
+
+
     const int OPERACIONES_AMISTAD = 20000;
     int pares = OPERACIONES_AMISTAD;
     if (pares * 2 > muestra.tamanio()) pares = muestra.tamanio() / 2;
@@ -246,9 +246,9 @@ void BancoPruebas::medirOperaciones(RedSocial& red, Arreglo<ResultadoPrueba>& re
     }
     anotar(resultados, "Eliminar amistad", escala, pares, reloj.milisegundos());
 
-    // -----------------------------------------------------------------------
-    // 11. Ordenamientos propios sobre un arreglo del tamano de la red
-    // -----------------------------------------------------------------------
+
+
+
     int cantidadOrdenar = static_cast<int>(escala);
     Arreglo<int> original(cantidadOrdenar);
     for (int i = 0; i < cantidadOrdenar; ++i) original.agregar(azar.enteroMenorQue(1000000000));
@@ -263,12 +263,12 @@ void BancoPruebas::medirOperaciones(RedSocial& red, Arreglo<ResultadoPrueba>& re
     ordenarPorMezcla(copia, MenorQue());
     anotar(resultados, "Mergesort propio", escala, cantidadOrdenar, reloj.milisegundos());
 
-    // Se usa 'encontrados' para que el compilador no elimine los bucles de
-    // busqueda al ver que su resultado no se utiliza.
+
+
     if (encontrados < 0) std::printf(" ");
 }
 
-// ===========================================================================
+
 void BancoPruebas::ejecutarEscala(const ParametrosGeneracion& parametros,
                                   Arreglo<ResultadoPrueba>& resultados) {
     RedSocial red;
@@ -285,13 +285,13 @@ void BancoPruebas::ejecutarEscala(const ParametrosGeneracion& parametros,
     medirOperaciones(red, resultados);
 }
 
-// ===========================================================================
+
 void BancoPruebas::ejecutarSerieDeEscalas(int usuariosMaximos, const char* rutaCsv) {
     Arreglo<ResultadoPrueba> resultados;
 
-    // Escalas crecientes: al multiplicar n por 10 se observa si el tiempo por
-    // operacion se mantiene constante (O(1)), crece despacio (O(log n)) o
-    // crece en proporcion (O(n)).
+
+
+
     int escalas[] = {10000, 100000, 1000000, 2000000};
     int cantidadEscalas = static_cast<int>(sizeof(escalas) / sizeof(escalas[0]));
 
@@ -320,7 +320,7 @@ void BancoPruebas::ejecutarSerieDeEscalas(int usuariosMaximos, const char* rutaC
     }
 }
 
-// ===========================================================================
+
 void BancoPruebas::imprimirTabla(const Arreglo<ResultadoPrueba>& resultados) {
     std::printf("  %-30s %12s %12s %14s %16s\n", "OPERACION", "ESCALA", "REPETIC.",
                 "TOTAL (ms)", "POR OPER. (us)");
@@ -362,4 +362,4 @@ bool BancoPruebas::exportarCSV(const Arreglo<ResultadoPrueba>& resultados, const
     return true;
 }
 
-}  // namespace aed
+}

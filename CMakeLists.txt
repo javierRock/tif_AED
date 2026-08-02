@@ -11,11 +11,6 @@ endif()
 
 add_compile_options(-Wall -Wextra)
 
-# ---------------------------------------------------------------------------
-# Todo el codigo, salvo el main y las pruebas, vive en esta biblioteca. Asi el
-# ejecutable del sistema y el de las pruebas comparten exactamente el mismo
-# codigo compilado.
-# ---------------------------------------------------------------------------
 add_library(nucleo STATIC
     src/estructuras/String.cpp
     src/estructuras/Trie.cpp

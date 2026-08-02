@@ -1,19 +1,19 @@
-// ============================================================================
-//  ListaEnlazada.h
-//  Lista simplemente enlazada con punteros a cabeza y cola.
-//
-//  Se usa para los comentarios de una publicacion: la cantidad por publicacion
-//  es pequena y variable, se recorre de principio a fin y casi siempre se
-//  agrega al final. Con punteros a cabeza y cola, agregar al final es O(1) y
-//  no se desperdicia memoria en capacidad reservada de mas (algo que si haria
-//  un arreglo dinamico multiplicado por millones de publicaciones).
-//
-//  Complejidades:
-//      agregarAlFinal()   -> O(1)
-//      agregarAlInicio()  -> O(1)
-//      eliminarPrimeroQue -> O(n)
-//      buscar()           -> O(n)
-// ============================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 #pragma once
 
 #include "Utilidades.h"
@@ -31,7 +31,7 @@ public:
         explicit Nodo(const T& v) : valor(v), siguiente(nullptr) {}
     };
 
-    // ---- Construccion / destruccion ---------------------------------------
+
     ListaEnlazada() : _cabeza(nullptr), _cola(nullptr), _tamanio(0) {}
 
     ListaEnlazada(const ListaEnlazada& otra) : _cabeza(nullptr), _cola(nullptr), _tamanio(0) {
@@ -70,13 +70,13 @@ public:
         return *this;
     }
 
-    // ---- Consulta ---------------------------------------------------------
+
     int tamanio() const { return _tamanio; }
     bool vacia() const { return _tamanio == 0; }
     Nodo* primero() { return _cabeza; }
     const Nodo* primero() const { return _cabeza; }
 
-    // ---- Modificacion -----------------------------------------------------
+
     void agregarAlFinal(const T& valor) {
         Nodo* nuevo = new Nodo(valor);
         if (_cola == nullptr) {
@@ -97,8 +97,8 @@ public:
         ++_tamanio;
     }
 
-    /// Elimina el primer elemento que cumpla el predicado.
-    /// El predicado es cualquier objeto con operator()(const T&) -> bool.
+
+
     template <typename Predicado>
     bool eliminarPrimeroQue(Predicado cumple) {
         Nodo* anterior = nullptr;
@@ -139,4 +139,4 @@ private:
     int _tamanio;
 };
 
-}  // namespace aed
+}

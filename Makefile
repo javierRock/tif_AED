@@ -1,12 +1,3 @@
-# ============================================================================
-#  Makefile alternativo (por si se prefiere no usar CMake).
-#
-#      make            compila el sistema y las pruebas
-#      make ejecutar   compila y lanza el sistema
-#      make probar     compila y lanza las pruebas automaticas
-#      make banco      ejecuta el analisis de rendimiento
-#      make limpiar    borra los archivos generados
-# ============================================================================
 CXX      := g++
 CXXFLAGS := -std=c++17 -O2 -Wall -Wextra
 DIR_OBJ  := build

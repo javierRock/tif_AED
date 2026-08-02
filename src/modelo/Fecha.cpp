@@ -12,7 +12,7 @@ String Fecha::aTexto() const {
 }
 
 Fecha Fecha::desdeTexto(const String& texto) {
-    // Formato esperado: AAAA-MM-DD (10 caracteres).
+
     if (texto.longitud() < 10) return Fecha();
 
     int valores[3] = {0, 0, 0};
@@ -33,4 +33,4 @@ Fecha Fecha::desdeTexto(const String& texto) {
     return Fecha(valores[0], valores[1], valores[2]);
 }
 
-}  // namespace aed
+}

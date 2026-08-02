@@ -1,16 +1,16 @@
-// ============================================================================
-//  Cola.h
-//  Cola FIFO implementada sobre un arreglo circular.
-//
-//  Es la estructura que hace posible el recorrido BFS del grafo de amistades
-//  (busqueda del camino mas corto entre dos personas).
-//
-//  Por que circular y no una lista enlazada: en un BFS sobre un millon de
-//  nodos se encolan y desencolan millones de enteros. Un arreglo contiguo
-//  aprovecha la cache del procesador y evita un new/delete por elemento.
-//
-//  Complejidades: encolar() y desencolar() son O(1) amortizado.
-// ============================================================================
+
+
+
+
+
+
+
+
+
+
+
+
+
 #pragma once
 
 #include "Utilidades.h"
@@ -52,20 +52,20 @@ public:
 
     ~Cola() { delete[] _datos; }
 
-    // ---- Consulta ---------------------------------------------------------
+
     bool vacia() const { return _cantidad == 0; }
     int tamanio() const { return _cantidad; }
     int capacidad() const { return _capacidad; }
 
     const T& frente() const { return _datos[_inicio]; }
 
-    // ---- Modificacion -----------------------------------------------------
+
     void encolar(const T& valor) {
         if (_cantidad == _capacidad) {
             reservar(_capacidad == 0 ? 16 : _capacidad * 2);
         }
-        // El modulo hace que al llegar al final del arreglo se vuelva a
-        // escribir al principio: de ahi el nombre "circular".
+
+
         int posicion = (_inicio + _cantidad) % _capacidad;
         _datos[posicion] = valor;
         ++_cantidad;
@@ -78,8 +78,8 @@ public:
         return valor;
     }
 
-    /// Vacia la cola SIN liberar la memoria reservada. Asi el mismo objeto
-    /// se reutiliza en miles de recorridos BFS sin volver a pedir memoria.
+
+
     void limpiar() {
         _inicio = 0;
         _cantidad = 0;
@@ -100,8 +100,8 @@ public:
 private:
     T* _datos;
     int _capacidad;
-    int _inicio;    // posicion del primer elemento
-    int _cantidad;  // cuantos elementos hay guardados
+    int _inicio;
+    int _cantidad;
 };
 
-}  // namespace aed
+}

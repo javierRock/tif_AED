@@ -29,9 +29,9 @@ void Trie::limpiar() {
     _cantidadNodos = 1;
 }
 
-// ---------------------------------------------------------------------------
-// Insercion: se baja letra por letra creando los nodos que falten.
-// ---------------------------------------------------------------------------
+
+
+
 void Trie::insertar(const String& texto, int id) {
     String normalizado = texto.aMinusculas();
     Nodo* actual = _raiz;
@@ -50,9 +50,9 @@ void Trie::insertar(const String& texto, int id) {
     actual->idsAqui.agregar(id);
 }
 
-// ---------------------------------------------------------------------------
-// Eliminacion: se localiza el nodo terminal y se quita el id de su lista.
-// ---------------------------------------------------------------------------
+
+
+
 bool Trie::eliminar(const String& texto, int id) {
     String normalizado = texto.aMinusculas();
     Nodo* actual = _raiz;
@@ -68,10 +68,10 @@ bool Trie::eliminar(const String& texto, int id) {
     return true;
 }
 
-// ---------------------------------------------------------------------------
-// Busqueda por prefijo: primero se desciende hasta el nodo del prefijo y
-// desde ahi se recolectan en profundidad los ids del subarbol.
-// ---------------------------------------------------------------------------
+
+
+
+
 void Trie::buscarPorPrefijo(const String& prefijo, int limite, Arreglo<int>& resultado) const {
     resultado.limpiar();
     if (prefijo.vacia() || limite <= 0) return;
@@ -81,7 +81,7 @@ void Trie::buscarPorPrefijo(const String& prefijo, int limite, Arreglo<int>& res
 
     for (int i = 0; i < normalizado.longitud(); ++i) {
         actual = actual->buscarHijo(normalizado[i]);
-        if (actual == nullptr) return;  // ningun texto empieza con ese prefijo
+        if (actual == nullptr) return;
     }
     recolectar(actual, limite, resultado);
 }
@@ -97,4 +97,4 @@ void Trie::recolectar(const Nodo* nodo, int limite, Arreglo<int>& resultado) {
     }
 }
 
-}  // namespace aed
+}

@@ -1,12 +1,12 @@
-// ============================================================================
-//  Cronometro.h
-//  Medicion de tiempos de ejecucion.
-//
-//  Usa std::chrono::steady_clock, que el enunciado permite expresamente
-//  ("medicion de tiempos"). Es un reloj MONOTONO: nunca retrocede aunque el
-//  sistema ajuste la hora, por lo que es el indicado para medir duraciones
-//  (a diferencia de system_clock, que si puede saltar hacia atras).
-// ============================================================================
+
+
+
+
+
+
+
+
+
 #pragma once
 
 #include <chrono>
@@ -31,4 +31,4 @@ private:
     std::chrono::steady_clock::time_point _inicio;
 };
 
-}  // namespace aed
+}

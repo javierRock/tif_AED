@@ -5,12 +5,12 @@
 namespace aed {
 
 namespace {
-const int TAMANIO_BUFFER = 64 * 1024;  // 64 KB por lectura
+const int TAMANIO_BUFFER = 64 * 1024;
 }
 
-// ===========================================================================
-//  LectorCSV
-// ===========================================================================
+
+
+
 LectorCSV::LectorCSV()
     : _archivo(nullptr), _buffer(nullptr), _bytesEnBuffer(0), _posicion(0) {}
 
@@ -40,7 +40,7 @@ void LectorCSV::cerrar() {
 }
 
 int LectorCSV::siguienteCaracter() {
-    // Cuando se agota el bloque en memoria se pide el siguiente al disco.
+
     if (_posicion >= _bytesEnBuffer) {
         _bytesEnBuffer = static_cast<int>(
             std::fread(_buffer, 1, static_cast<unsigned long>(TAMANIO_BUFFER), _archivo));
@@ -61,7 +61,7 @@ bool LectorCSV::leerFila(Arreglo<String>& campos) {
         int caracter = siguienteCaracter();
 
         if (caracter == -1) {
-            if (!hayContenido) return false;  // fin de archivo sin datos
+            if (!hayContenido) return false;
             campos.agregar(mover(actual));
             return true;
         }
@@ -69,7 +69,7 @@ bool LectorCSV::leerFila(Arreglo<String>& campos) {
             campos.agregar(mover(actual));
             return true;
         }
-        if (caracter == '\r') continue;  // finales de linea de Windows
+        if (caracter == '\r') continue;
 
         hayContenido = true;
         if (caracter == ',') {
@@ -81,9 +81,9 @@ bool LectorCSV::leerFila(Arreglo<String>& campos) {
     }
 }
 
-// ===========================================================================
-//  EscritorCSV
-// ===========================================================================
+
+
+
 EscritorCSV::EscritorCSV() : _archivo(nullptr), _primerCampoDeLaFila(true) {}
 
 EscritorCSV::~EscritorCSV() {
@@ -112,7 +112,7 @@ void EscritorCSV::escribirSeparador() {
 void EscritorCSV::campo(const String& texto) {
     if (_archivo == nullptr) return;
     escribirSeparador();
-    // Se neutralizan los caracteres que romperian el formato.
+
     for (int i = 0; i < texto.longitud(); ++i) {
         char c = texto[i];
         if (c == ',' || c == '\n' || c == '\r') c = ' ';
@@ -136,9 +136,9 @@ void EscritorCSV::finDeFila() {
     _primerCampoDeLaFila = true;
 }
 
-// ===========================================================================
-//  Volcado de la red social
-// ===========================================================================
+
+
+
 namespace archivo {
 
 bool guardarUsuarios(const RedSocial& red, const char* ruta) {
@@ -185,7 +185,7 @@ bool guardarAmistades(const RedSocial& red, const char* ruta) {
 
         const Arreglo<int>& amigos = grafo.vecinos(i);
         for (int k = 0; k < amigos.tamanio(); ++k) {
-            // Cada amistad se escribe una sola vez (la del indice menor).
+
             if (amigos[k] <= i) continue;
             escritor.campo(usuario.id);
             escritor.campo(red.usuarioEnIndice(amigos[k]).id);
@@ -222,7 +222,7 @@ bool guardarPublicaciones(const RedSocial& red, const char* ruta) {
     return true;
 }
 
-// ---------------------------------------------------------------------------
+
 bool cargarUsuarios(RedSocial& red, const char* ruta) {
     LectorCSV lector;
     if (!lector.abrir(ruta)) return false;
@@ -231,7 +231,7 @@ bool cargarUsuarios(RedSocial& red, const char* ruta) {
     bool esCabecera = true;
 
     while (lector.leerFila(campos)) {
-        if (esCabecera) {  // la primera fila son los nombres de columna
+        if (esCabecera) {
             esCabecera = false;
             continue;
         }
@@ -256,8 +256,8 @@ bool cargarAmistades(RedSocial& red, const char* ruta) {
     Arreglo<String> campos;
     bool esCabecera = true;
 
-    // Se cargan sin ordenar y se ordena todo al final: mismo motivo que en el
-    // generador sintetico, es mucho mas rapido para millones de aristas.
+
+
     while (lector.leerFila(campos)) {
         if (esCabecera) {
             esCabecera = false;
@@ -299,6 +299,6 @@ bool cargarPublicaciones(RedSocial& red, const char* ruta) {
     return true;
 }
 
-}  // namespace archivo
+}
 
-}  // namespace aed
+}

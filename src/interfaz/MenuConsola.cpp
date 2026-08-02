@@ -15,19 +15,19 @@ void linea() {
     std::printf("  ------------------------------------------------------------\n");
 }
 
-/// Fecha del sistema simplificada: se usa como fecha por defecto al crear
-/// contenido desde el menu.
+
+
 Fecha fechaDeHoy() {
     return Fecha(2026, 7, 31);
 }
 
-}  // namespace
+}
 
 MenuConsola::MenuConsola(RedSocial& red) : _red(red), _salir(false), _entradaCerrada(false) {}
 
-// ===========================================================================
-//  Bucle principal
-// ===========================================================================
+
+
+
 void MenuConsola::ejecutar() {
     while (!_salir && !_entradaCerrada) {
         mostrarMenu();
@@ -89,9 +89,9 @@ void MenuConsola::mostrarMenu() const {
     std::printf("============================================================\n");
 }
 
-// ===========================================================================
-//  USUARIOS
-// ===========================================================================
+
+
+
 void MenuConsola::registrarUsuario() {
     String nombre = leerTexto("  Nombre completo: ");
     String correo = leerTexto("  Correo electronico: ");
@@ -189,9 +189,9 @@ void MenuConsola::listarAlfabeticamente() {
     for (int i = 0; i < indices.tamanio(); ++i) mostrarLineaDeUsuario(indices[i]);
 }
 
-// ===========================================================================
-//  AMISTADES
-// ===========================================================================
+
+
+
 void MenuConsola::agregarAmigo() {
     int idA = leerEntero("  ID del primer usuario: ");
     int idB = leerEntero("  ID del segundo usuario: ");
@@ -297,9 +297,9 @@ void MenuConsola::sugerenciasDeAmistad() {
     }
 }
 
-// ===========================================================================
-//  PUBLICACIONES
-// ===========================================================================
+
+
+
 void MenuConsola::crearPublicacion() {
     int id = leerEntero("  ID del autor: ");
     String texto = leerTexto("  Texto de la publicacion: ");
@@ -377,9 +377,9 @@ void MenuConsola::interactuarConPublicacion() {
     std::printf("  Accion no valida.\n");
 }
 
-// ===========================================================================
-//  RANKINGS Y ANALISIS
-// ===========================================================================
+
+
+
 void MenuConsola::usuariosMasActivos() {
     int cantidad = leerEntero("  Cuantos usuarios en el ranking: ");
     if (cantidad <= 0) cantidad = 10;
@@ -487,8 +487,8 @@ void MenuConsola::importarDatos() {
     }
 
     Cronometro reloj;
-    // El orden importa: primero los usuarios (crean los nodos del grafo),
-    // luego las amistades (necesitan los IDs) y al final las publicaciones.
+
+
     if (!archivo::cargarUsuarios(_red, "usuarios.csv")) {
         std::printf("  No se pudo abrir usuarios.csv\n");
         return;
@@ -501,9 +501,9 @@ void MenuConsola::importarDatos() {
                 _red.grafo().cantidadAristas(), _red.cantidadPublicacionesActivas());
 }
 
-// ===========================================================================
-//  Presentacion
-// ===========================================================================
+
+
+
 void MenuConsola::mostrarFichaDeUsuario(int indice) const {
     if (indice < 0) return;
     const Usuario& usuario = _red.usuarioEnIndice(indice);
@@ -547,9 +547,9 @@ void MenuConsola::mostrarPublicacion(int indice, bool conComentarios) const {
     }
 }
 
-// ===========================================================================
-//  Entrada de datos
-// ===========================================================================
+
+
+
 String MenuConsola::leerTexto(const char* mensaje) {
     std::printf("%s", mensaje);
     std::fflush(stdout);
@@ -562,7 +562,7 @@ String MenuConsola::leerTexto(const char* mensaje) {
         return String();
     }
     if (std::cin.fail()) {
-        // La linea era mas larga que el buffer: se descarta el resto.
+
         std::cin.clear();
         while (std::cin.get() != '\n' && !std::cin.eof()) {}
     }
@@ -573,4 +573,4 @@ int MenuConsola::leerEntero(const char* mensaje) {
     return static_cast<int>(leerTexto(mensaje).aEntero());
 }
 
-}  // namespace aed
+}

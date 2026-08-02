@@ -1,13 +1,13 @@
-// ============================================================================
-//  main.cpp
-//  Punto de entrada del sistema.
-//
-//  Uso tipico:
-//      ./redsocial                          -> demo con 100 000 usuarios
-//      ./redsocial --usuarios 1000000       -> escala de un millon
-//      ./redsocial --banco --maximo 1000000 -> solo analisis de rendimiento
-//      ./redsocial --vacia                  -> arranca sin datos
-// ============================================================================
+
+
+
+
+
+
+
+
+
+
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -43,7 +43,7 @@ void mostrarAyuda() {
         "  --ayuda             Muestra este mensaje\n\n");
 }
 
-/// Interpreta los argumentos. Devuelve false si hay que terminar el programa.
+
 bool interpretarArgumentos(int cantidad, char** argumentos, OpcionesDeLinea& opciones) {
     bool publicacionesIndicadas = false;
 
@@ -77,7 +77,7 @@ bool interpretarArgumentos(int cantidad, char** argumentos, OpcionesDeLinea& opc
         }
     }
 
-    // Por defecto se generan dos publicaciones por usuario.
+
     if (!publicacionesIndicadas) {
         opciones.generacion.cantidadPublicaciones = opciones.generacion.cantidadUsuarios * 2;
     }
@@ -99,7 +99,7 @@ void mostrarResumenDeCarga(const RedSocial& red, double segundos) {
     std::printf("  ------------------------------------------------------------\n\n");
 }
 
-}  // namespace
+}
 
 int main(int cantidadArgumentos, char** argumentos) {
     OpcionesDeLinea opciones;
@@ -107,7 +107,7 @@ int main(int cantidadArgumentos, char** argumentos) {
 
     if (!interpretarArgumentos(cantidadArgumentos, argumentos, opciones)) return 0;
 
-    // --- Modo exclusivo de analisis de rendimiento -------------------------
+
     if (opciones.soloBancoDePruebas) {
         std::printf("\n  BANCO DE PRUEBAS DE RENDIMIENTO\n");
         std::printf("  ------------------------------------------------------------\n");

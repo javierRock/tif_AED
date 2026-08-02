@@ -6,13 +6,13 @@ namespace aed {
 
 namespace {
 
-/// Funtor usado en el recorrido en orden del AVL para quedarse con los
-/// primeros 'limite' usuarios en orden alfabetico y cortar el recorrido ahi.
+
+
 struct RecolectorAlfabetico {
     Arreglo<int>* destino;
     int limite;
 
-    bool operator()(const String& /*nombre*/, const Arreglo<int>& indices) {
+    bool operator()(const String&  , const Arreglo<int>& indices) {
         for (int i = 0; i < indices.tamanio(); ++i) {
             if (destino->tamanio() >= limite) return false;
             destino->agregar(indices[i]);
@@ -21,7 +21,7 @@ struct RecolectorAlfabetico {
     }
 };
 
-}  // namespace
+}
 
 RedSocial::RedSocial()
     : _indicePorId(1024),
@@ -39,19 +39,19 @@ int RedSocial::indiceDeUsuario(int id) const {
     return (indice == nullptr) ? -1 : *indice;
 }
 
-// ===========================================================================
-//  1. GESTION DE USUARIOS
-// ===========================================================================
+
+
+
 int RedSocial::registrarUsuario(const String& nombre, const String& correo,
                                 const Fecha& fechaRegistro) {
-    // El correo es la clave natural del sistema: no puede repetirse.
+
     if (correo.vacia() || _indicePorCorreo.contiene(correo)) return -1;
 
     int id = _siguienteIdUsuario++;
     int indice;
 
-    // Se reutiliza el hueco de un usuario eliminado si lo hay; su nodo del
-    // grafo ya existe y esta aislado, listo para usarse de nuevo.
+
+
     if (!_posicionesLibres.vacio()) {
         indice = _posicionesLibres.ultimo();
         _posicionesLibres.quitarUltimo();
@@ -76,7 +76,7 @@ bool RedSocial::eliminarUsuario(int id) {
     Usuario& usuario = _usuarios[indice];
     if (!usuario.activo) return false;
 
-    // --- 1. Sus publicaciones dejan de estar activas -----------------------
+
     for (int i = 0; i < usuario.indicesPublicaciones.tamanio(); ++i) {
         Publicacion& publicacion = _publicaciones[usuario.indicesPublicaciones[i]];
         if (!publicacion.activa) continue;
@@ -88,9 +88,9 @@ bool RedSocial::eliminarUsuario(int id) {
     }
     usuario.indicesPublicaciones.liberar();
 
-    // --- 2. Se desconecta del grafo ----------------------------------------
-    // Primero se corrige el contador de cada amigo (leyendo la lista antes de
-    // vaciarla) y despues se borran las aristas en ambos sentidos.
+
+
+
     const Arreglo<int>& amigos = _grafo.vecinos(indice);
     for (int i = 0; i < amigos.tamanio(); ++i) {
         Usuario& amigo = _usuarios[amigos[i]];
@@ -99,12 +99,12 @@ bool RedSocial::eliminarUsuario(int id) {
     }
     _grafo.aislarNodo(indice);
 
-    // --- 3. Se retira de todos los indices ---------------------------------
+
     if (_indicesDeTextoActivos) desindexarTextos(indice);
     _indicePorId.eliminar(id);
     _indicePorCorreo.eliminar(usuario.correo);
 
-    // --- 4. Borrado logico y liberacion del hueco --------------------------
+
     usuario.activo = false;
     usuario.cantidadAmigos = 0;
     usuario.nombre.limpiar();
@@ -137,8 +137,8 @@ void RedSocial::buscarPorNombre(const String& nombre, Arreglo<int>& indices) {
 }
 
 void RedSocial::buscarPorPrefijo(const String& prefijo, int limite, Arreglo<int>& indices) {
-    // Se piden mas resultados de los necesarios porque algunos pueden
-    // corresponder a usuarios ya eliminados o repetirse (nombre + apellido).
+
+
     _indicePrefijos.buscarPorPrefijo(prefijo, limite * 4 + 16, indices);
 
     int escritura = 0;
@@ -169,13 +169,13 @@ void RedSocial::indexarTextos(int indice) {
     const String& nombre = _usuarios[indice].nombre;
     if (nombre.vacia()) return;
 
-    // AVL: un mismo nombre puede corresponder a varios usuarios, por eso el
-    // valor asociado a la clave es una lista de indices.
+
+
     Arreglo<int>& homonimos = _indicePorNombre.obtenerOInsertar(nombre, Arreglo<int>());
     homonimos.agregar(indice);
 
-    // Trie: se indexa el nombre completo y ademas cada palabra suelta, para
-    // poder encontrar a "Ana Torres" escribiendo "ana" o escribiendo "torres".
+
+
     _indicePrefijos.insertar(nombre, indice);
     porCadaPalabra(nombre, [&](const String& palabra) {
         if (!(palabra == nombre)) _indicePrefijos.insertar(palabra, indice);
@@ -199,9 +199,9 @@ void RedSocial::desindexarTextos(int indice) {
     });
 }
 
-// ===========================================================================
-//  2. AMISTADES
-// ===========================================================================
+
+
+
 bool RedSocial::agregarAmigo(int idA, int idB) {
     int a = indiceDeUsuario(idA);
     int b = indiceDeUsuario(idB);
@@ -209,8 +209,8 @@ bool RedSocial::agregarAmigo(int idA, int idB) {
     if (!_usuarios[a].activo || !_usuarios[b].activo) return false;
     if (!_grafo.agregarArista(a, b)) return false;
 
-    // En este modelo la amistad es reciproca, asi que cada uno gana un amigo
-    // y, al mismo tiempo, un seguidor.
+
+
     ++_usuarios[a].cantidadAmigos;
     ++_usuarios[b].cantidadAmigos;
     ++_usuarios[a].cantidadSeguidores;
@@ -278,9 +278,9 @@ void RedSocial::amigosDe(int id, Arreglo<int>& indicesAmigos) {
     for (int i = 0; i < lista.tamanio(); ++i) indicesAmigos.agregar(lista[i]);
 }
 
-// ===========================================================================
-//  3. PUBLICACIONES
-// ===========================================================================
+
+
+
 int RedSocial::crearPublicacion(int idAutor, const String& texto, const Fecha& fecha) {
     int indiceAutor = indiceDeUsuario(idAutor);
     if (indiceAutor < 0 || !_usuarios[indiceAutor].activo) return -1;
@@ -303,7 +303,7 @@ bool RedSocial::eliminarPublicacion(int idPublicacion) {
     Publicacion& publicacion = _publicaciones[indice];
     if (!publicacion.activa) return false;
 
-    // El autor pierde las reacciones que habia acumulado con esta publicacion.
+
     int indiceAutor = indiceDeUsuario(publicacion.idPropietario);
     if (indiceAutor >= 0) {
         Usuario& autor = _usuarios[indiceAutor];
@@ -371,14 +371,14 @@ void RedSocial::publicacionesDe(int idUsuario, Arreglo<int>& indicesPublicacione
     }
 }
 
-// ===========================================================================
-//  4. RANKINGS
-//
-//  Ambos usan la misma tecnica: un monticulo de MINIMOS de tamano K.
-//  Se recorre una sola vez toda la coleccion y solo se conserva lo mejor
-//  visto hasta el momento -> O(n log K) en tiempo y O(K) en memoria, en lugar
-//  del O(n log n) y O(n) que costaria ordenar la coleccion entera.
-// ===========================================================================
+
+
+
+
+
+
+
+
 void RedSocial::usuariosMasActivos(int cantidad, Arreglo<ElementoRanking>& ranking) {
     ranking.limpiar();
     if (cantidad <= 0) return;
@@ -391,7 +391,7 @@ void RedSocial::usuariosMasActivos(int cantidad, Arreglo<ElementoRanking>& ranki
         if (mejores.tamanio() < cantidad) {
             mejores.insertar(candidato);
         } else if (mejores.minimo() < candidato) {
-            // El candidato supera al peor de los K guardados: lo reemplaza.
+
             mejores.reemplazarMinimo(candidato);
         }
     }
@@ -416,9 +416,9 @@ void RedSocial::publicacionesConMasReacciones(int cantidad, Arreglo<ElementoRank
     mejores.volcarDeMayorAMenor(ranking);
 }
 
-// ===========================================================================
-//  5. ESTADISTICAS Y CARGA MASIVA
-// ===========================================================================
+
+
+
 long long RedSocial::memoriaAproximadaBytes() const {
     long long total = 0;
 
@@ -465,4 +465,4 @@ void RedSocial::sincronizarContadoresDeAmigos() {
     }
 }
 
-}  // namespace aed
+}

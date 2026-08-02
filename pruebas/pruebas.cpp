@@ -1,13 +1,13 @@
-// ============================================================================
-//  pruebas.cpp
-//  Pruebas automaticas de todas las estructuras y algoritmos del proyecto.
-//
-//  No se usa ningun framework externo (Google Test, Catch2, ...): basta con
-//  una funcion que compara lo obtenido con lo esperado y lleva la cuenta de
-//  los fallos. Es codigo que se puede leer y defender de principio a fin.
-//
-//  Se ejecuta con:  ./pruebas
-// ============================================================================
+
+
+
+
+
+
+
+
+
+
 #include <cstdio>
 
 #include "../src/datos/GeneradorSintetico.h"
@@ -25,9 +25,9 @@
 
 using namespace aed;
 
-// ---------------------------------------------------------------------------
-//  Mini marco de pruebas
-// ---------------------------------------------------------------------------
+
+
+
 namespace {
 
 int totalComprobaciones = 0;
@@ -49,11 +49,11 @@ void comprobar(bool condicion, const char* descripcion) {
     }
 }
 
-}  // namespace
+}
 
-// ===========================================================================
-//  String
-// ===========================================================================
+
+
+
 void probarString() {
     comenzarGrupo("String");
 
@@ -86,16 +86,16 @@ void probarString() {
     comprobar(String("hola").codigoHash() != String("holb").codigoHash(),
               "el hash cambia si cambia el texto");
 
-    // Al asignar una cadena corta sobre una larga debe quedar solo la corta.
+
     String reutilizada("texto muy largo de ejemplo");
     reutilizada = String("ab");
     comprobar(reutilizada.longitud() == 2 && reutilizada == String("ab"),
               "asignar una cadena corta sobre una larga la trunca bien");
 }
 
-// ===========================================================================
-//  Arreglo dinamico
-// ===========================================================================
+
+
+
 void probarArreglo() {
     comenzarGrupo("Arreglo dinamico");
 
@@ -131,9 +131,9 @@ void probarArreglo() {
               "el arreglo copia correctamente objetos con memoria propia");
 }
 
-// ===========================================================================
-//  Ordenamientos
-// ===========================================================================
+
+
+
 void probarOrdenamiento() {
     comenzarGrupo("Ordenamiento (quicksort y mergesort)");
 
@@ -160,7 +160,7 @@ void probarOrdenamiento() {
     comprobar(quicksortOrdenado, "quicksort deja el arreglo ordenado");
     comprobar(coinciden, "quicksort y mergesort producen el mismo resultado");
 
-    // Caso peligroso para un quicksort ingenuo: datos ya ordenados.
+
     Arreglo<int> yaOrdenado(5000);
     for (int i = 0; i < 5000; ++i) yaOrdenado.agregar(i);
     ordenarRapido(yaOrdenado);
@@ -174,9 +174,9 @@ void probarOrdenamiento() {
     comprobar(conRepetidos.tamanio() == 5, "eliminarDuplicadosOrdenados deja solo los distintos");
 }
 
-// ===========================================================================
-//  Lista enlazada, pila y cola
-// ===========================================================================
+
+
+
 void probarListaPilaCola() {
     comenzarGrupo("ListaEnlazada, Pila y Cola");
 
@@ -189,7 +189,7 @@ void probarListaPilaCola() {
     bool eliminado = lista.eliminarPrimeroQue([](const int& v) { return v == 3; });
     comprobar(eliminado && lista.tamanio() == 5, "eliminarPrimeroQue quita el elemento buscado");
 
-    // Borrar el ultimo debe dejar el puntero de cola en su sitio.
+
     lista.eliminarPrimeroQue([](const int& v) { return v == 5; });
     lista.agregarAlFinal(9);
     const ListaEnlazada<int>::Nodo* nodo = lista.primero();
@@ -204,8 +204,8 @@ void probarListaPilaCola() {
     for (int i = 1; i <= 3; ++i) cola.encolar(i);
     comprobar(cola.desencolar() == 1 && cola.desencolar() == 2, "la cola devuelve en orden FIFO");
 
-    // Alternar encolados y desencolados fuerza al indice a dar la vuelta
-    // varias veces sobre el arreglo circular, y ademas a redimensionarlo.
+
+
     Cola<int> circular(4);
     bool ordenCorrecto = true;
     int siguienteEsperado = 0;
@@ -219,9 +219,9 @@ void probarListaPilaCola() {
     comprobar(ordenCorrecto, "el orden FIFO se mantiene al redimensionar la cola");
 }
 
-// ===========================================================================
-//  Tabla hash
-// ===========================================================================
+
+
+
 void probarTablaHash() {
     comenzarGrupo("TablaHash (direccionamiento abierto)");
 
@@ -241,7 +241,7 @@ void probarTablaHash() {
     comprobar(!tabla.insertar(5, 999), "insertar una clave existente devuelve false");
     comprobar(*tabla.buscar(5) == 999, "y actualiza su valor");
 
-    // Prueba del punto delicado: las tumbas no deben ocultar otras claves.
+
     for (int i = 0; i < N; i += 2) tabla.eliminar(i);
     comprobar(tabla.tamanio() == N / 2, "el tamanio refleja los borrados");
 
@@ -265,9 +265,9 @@ void probarTablaHash() {
               "no confunde claves de texto distintas");
 }
 
-// ===========================================================================
-//  Monticulo de minimos
-// ===========================================================================
+
+
+
 void probarMonticulo() {
     comenzarGrupo("MonticuloMinimo");
 
@@ -284,7 +284,7 @@ void probarMonticulo() {
     }
     comprobar(creciente, "extraerMinimo devuelve los elementos de menor a mayor");
 
-    // Seleccion de los 10 mayores usando un monticulo de tamano 10.
+
     const int K = 10;
     MonticuloMinimo<int> mejores(K);
     for (int i = 1; i <= 1000; ++i) {
@@ -300,21 +300,21 @@ void probarMonticulo() {
               "el filtro top-K devuelve los 10 mayores en orden descendente");
 }
 
-// ===========================================================================
-//  Arbol AVL
-// ===========================================================================
+
+
+
 namespace {
 
-/// Recolecta las claves de un AVL durante el recorrido en orden.
+
 struct RecolectorDeClaves {
     Arreglo<int> claves;
-    bool operator()(const int& clave, const int& /*valor*/) {
+    bool operator()(const int& clave, const int&  ) {
         claves.agregar(clave);
         return true;
     }
 };
 
-}  // namespace
+}
 
 void probarArbolAVL() {
     comenzarGrupo("ArbolAVL");
@@ -322,12 +322,12 @@ void probarArbolAVL() {
     ArbolAVL<int, int> arbol;
     const int N = 10000;
 
-    // Insertar claves consecutivas es el peor caso de un ABB sin balancear:
-    // degeneraria en una lista de altura 10000.
+
+
     for (int i = 0; i < N; ++i) arbol.insertar(i, i * 10);
     comprobar(arbol.tamanio() == N, "se insertaron todas las claves");
 
-    // Altura teorica maxima de un AVL con n nodos: 1.44 * log2(n+2).
+
     comprobar(arbol.altura() <= 20, "el arbol se mantiene balanceado (altura <= 20)");
 
     bool todasCorrectas = true;
@@ -358,9 +358,9 @@ void probarArbolAVL() {
     comprobar(*porNombre.buscar(String("Ana")) == 2, "funciona con claves de texto");
 }
 
-// ===========================================================================
-//  Trie
-// ===========================================================================
+
+
+
 void probarTrie() {
     comenzarGrupo("Trie de prefijos");
 
@@ -391,16 +391,16 @@ void probarTrie() {
     comprobar(resultado.tamanio() == 2, "tras eliminar quedan dos coincidencias");
 }
 
-// ===========================================================================
-//  Grafo de amistades
-// ===========================================================================
+
+
+
 void probarGrafo() {
     comenzarGrupo("GrafoAmistades");
 
     GrafoAmistades grafo;
     grafo.establecerCantidadNodos(8);
 
-    // Grafo en linea: 0 - 1 - 2 - 3 - 4 - 5 - 6, y el 7 aislado.
+
     for (int i = 0; i < 6; ++i) grafo.agregarArista(i, i + 1);
     comprobar(grafo.cantidadAristas() == 6, "se contaron las aristas correctamente");
     comprobar(!grafo.agregarArista(0, 1), "no se puede duplicar una amistad existente");
@@ -424,7 +424,7 @@ void probarGrafo() {
     comprobar(grafo.caminoMasCorto(3, 3, camino) && camino.tamanio() == 1,
               "el camino de un usuario a si mismo tiene un solo elemento");
 
-    // Amigos en comun: 0 y 2 comparten al 1.
+
     Arreglo<int> comunes;
     grafo.amigosEnComun(0, 2, comunes);
     comprobar(comunes.tamanio() == 1 && comunes[0] == 1, "amigosEnComun halla la interseccion");
@@ -432,7 +432,7 @@ void probarGrafo() {
     grafo.amigosEnComun(0, 6, comunes);
     comprobar(comunes.vacio(), "sin amigos compartidos la interseccion queda vacia");
 
-    // Sugerencias: para el 0, el mejor candidato es el 2 (comparte al 1).
+
     Arreglo<SugerenciaAmistad> sugerencias;
     grafo.sugerirAmistades(0, 5, sugerencias);
     comprobar(!sugerencias.vacio() && sugerencias[0].indiceUsuario == 2,
@@ -456,9 +456,9 @@ void probarGrafo() {
               "aislarNodo borra tambien las referencias de vuelta");
 }
 
-/// Comprueba, sobre un grafo grande y realista, que el BFS bidireccional
-/// devuelve SIEMPRE un camino de la misma longitud que el BFS clasico.
-/// Es la prueba mas importante del proyecto: valida la optimizacion.
+
+
+
 void probarEquivalenciaDeBFS() {
     comenzarGrupo("BFS bidireccional frente a BFS clasico (grafo grande)");
 
@@ -489,7 +489,7 @@ void probarEquivalenciaDeBFS() {
         if (!hayBi) continue;
         if (caminoBidireccional.tamanio() != caminoSimple.tamanio()) longitudesIguales = false;
 
-        // El camino devuelto tiene que ser realmente recorrible.
+
         if (caminoBidireccional.primero() != origen ||
             caminoBidireccional.ultimo() != destino) {
             caminosValidos = false;
@@ -506,9 +506,9 @@ void probarEquivalenciaDeBFS() {
     comprobar(caminosValidos, "cada paso del camino devuelto es una amistad real");
 }
 
-// ===========================================================================
-//  RedSocial
-// ===========================================================================
+
+
+
 void probarRedSocial() {
     comenzarGrupo("RedSocial");
 
@@ -535,7 +535,7 @@ void probarRedSocial() {
     red.buscarPorPrefijo(String("flo"), 10, encontrados);
     comprobar(encontrados.tamanio() == 1, "el trie tambien indexa el apellido");
 
-    // --- Amistades ---------------------------------------------------------
+
     comprobar(red.agregarAmigo(ana, luis), "se crea la amistad");
     comprobar(red.agregarAmigo(luis, mara), "se crea la segunda amistad");
     comprobar(!red.agregarAmigo(ana, luis), "no se duplica una amistad");
@@ -554,7 +554,7 @@ void probarRedSocial() {
     comprobar(sugerencias.tamanio() == 1 && sugerencias[0].amigosEnComun == 1,
               "se sugiere a Maria por compartir un amigo");
 
-    // --- Publicaciones -----------------------------------------------------
+
     int pub1 = red.crearPublicacion(ana, String("Hola a todos"), Fecha(2026, 1, 1));
     int pub2 = red.crearPublicacion(ana, String("Segunda publicacion"), Fecha(2026, 1, 2));
     comprobar(pub1 > 0 && pub2 > 0, "se crearon las publicaciones");
@@ -586,7 +586,7 @@ void probarRedSocial() {
     comprobar(publicaciones.tamanio() == 1, "la publicacion eliminada ya no aparece");
     comprobar(red.buscarPublicacion(pub2) == nullptr, "no se puede recuperar por ID");
 
-    // --- Eliminacion de usuarios -------------------------------------------
+
     comprobar(red.eliminarUsuario(luis), "se elimina a Luis");
     comprobar(red.cantidadUsuariosActivos() == 2, "el contador de activos baja");
     comprobar(red.buscarPorId(luis) == nullptr, "Luis ya no se encuentra por ID");
@@ -600,7 +600,7 @@ void probarRedSocial() {
     red.buscarPorNombre(String("Luis Rojas"), encontrados);
     comprobar(encontrados.vacio(), "su nombre desaparece del AVL");
 
-    // La posicion liberada debe reutilizarse en el siguiente registro.
+
     int nuevo = red.registrarUsuario(String("Pedro Vargas"), String("pedro@correo.com"),
                                      Fecha(2026, 2, 2));
     comprobar(nuevo > 0 && red.cantidadUsuariosActivos() == 3, "se registra un usuario nuevo");
@@ -610,9 +610,9 @@ void probarRedSocial() {
               "el usuario nuevo no hereda las amistades del anterior");
 }
 
-// ===========================================================================
-//  Coherencia del generador sintetico
-// ===========================================================================
+
+
+
 void probarGeneradorSintetico() {
     comenzarGrupo("Generador sintetico (Barabasi-Albert)");
 
@@ -631,11 +631,11 @@ void probarGeneradorSintetico() {
     comprobar(grafo.gradoPromedio() > 5.0 && grafo.gradoPromedio() < 14.0,
               "el grado promedio esta en el rango esperado (~2m)");
 
-    // La firma del modelo: unos pocos usuarios concentran muchisimas amistades.
+
     comprobar(grafo.gradoMaximo() > 20 * static_cast<int>(grafo.gradoPromedio()),
               "existen 'hubs' con un grado muy superior al promedio (ley de potencias)");
 
-    // Coherencia entre el grafo y los contadores de cada usuario.
+
     bool contadoresCoherentes = true;
     bool listasOrdenadas = true;
     for (int i = 0; i < red.cantidadPosicionesUsuario(); ++i) {
@@ -648,7 +648,7 @@ void probarGeneradorSintetico() {
     comprobar(contadoresCoherentes, "cantidadAmigos coincide con el grado en el grafo");
     comprobar(listasOrdenadas, "todas las listas de adyacencia estan ordenadas y sin duplicados");
 
-    // Toda amistad debe aparecer en las dos direcciones.
+
     bool simetrico = true;
     GeneradorAleatorio azar(31337);
     for (int consulta = 0; consulta < 5000; ++consulta) {
@@ -661,7 +661,7 @@ void probarGeneradorSintetico() {
     comprobar(simetrico, "el grafo es simetrico: toda amistad esta en ambos sentidos");
 }
 
-// ===========================================================================
+
 int main() {
     std::printf("\n============================================================\n");
     std::printf("  PRUEBAS AUTOMATICAS DEL PROYECTO\n");
