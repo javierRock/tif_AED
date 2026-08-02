@@ -50,11 +50,11 @@ int LectorCSV::siguienteCaracter() {
     return static_cast<unsigned char>(_buffer[_posicion++]);
 }
 
-bool LectorCSV::leerFila(Arreglo<Cadena>& campos) {
+bool LectorCSV::leerFila(Arreglo<String>& campos) {
     if (_archivo == nullptr) return false;
 
     campos.limpiar();
-    Cadena actual;
+    String actual;
     bool hayContenido = false;
 
     while (true) {
@@ -74,7 +74,7 @@ bool LectorCSV::leerFila(Arreglo<Cadena>& campos) {
         hayContenido = true;
         if (caracter == ',') {
             campos.agregar(mover(actual));
-            actual = Cadena();
+            actual = String();
         } else {
             actual.agregar(static_cast<char>(caracter));
         }
@@ -109,7 +109,7 @@ void EscritorCSV::escribirSeparador() {
     _primerCampoDeLaFila = false;
 }
 
-void EscritorCSV::campo(const Cadena& texto) {
+void EscritorCSV::campo(const String& texto) {
     if (_archivo == nullptr) return;
     escribirSeparador();
     // Se neutralizan los caracteres que romperian el formato.
@@ -121,7 +121,7 @@ void EscritorCSV::campo(const Cadena& texto) {
 }
 
 void EscritorCSV::campo(const char* texto) {
-    campo(Cadena(texto));
+    campo(String(texto));
 }
 
 void EscritorCSV::campo(long long numero) {
@@ -227,7 +227,7 @@ bool cargarUsuarios(RedSocial& red, const char* ruta) {
     LectorCSV lector;
     if (!lector.abrir(ruta)) return false;
 
-    Arreglo<Cadena> campos;
+    Arreglo<String> campos;
     bool esCabecera = true;
 
     while (lector.leerFila(campos)) {
@@ -253,7 +253,7 @@ bool cargarAmistades(RedSocial& red, const char* ruta) {
     LectorCSV lector;
     if (!lector.abrir(ruta)) return false;
 
-    Arreglo<Cadena> campos;
+    Arreglo<String> campos;
     bool esCabecera = true;
 
     // Se cargan sin ordenar y se ordena todo al final: mismo motivo que en el
@@ -279,7 +279,7 @@ bool cargarPublicaciones(RedSocial& red, const char* ruta) {
     LectorCSV lector;
     if (!lector.abrir(ruta)) return false;
 
-    Arreglo<Cadena> campos;
+    Arreglo<String> campos;
     bool esCabecera = true;
 
     while (lector.leerFila(campos)) {

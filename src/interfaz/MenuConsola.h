@@ -9,7 +9,7 @@
 // ============================================================================
 #pragma once
 
-#include "../estructuras/Cadena.h"
+#include "../estructuras/String.h"
 #include "../sistema/RedSocial.h"
 
 namespace aed {
@@ -59,7 +59,7 @@ private:
     void mostrarPublicacion(int indice, bool conComentarios) const;
 
     // --- Entrada de datos --------------------------------------------------
-    Cadena leerTexto(const char* mensaje);
+    String leerTexto(const char* mensaje);
     int leerEntero(const char* mensaje);
 
     RedSocial& _red;

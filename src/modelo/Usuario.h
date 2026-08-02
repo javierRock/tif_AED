@@ -23,15 +23,15 @@
 #pragma once
 
 #include "../estructuras/Arreglo.h"
-#include "../estructuras/Cadena.h"
+#include "../estructuras/String.h"
 #include "Fecha.h"
 
 namespace aed {
 
 struct Usuario {
     int id = -1;
-    Cadena nombre;
-    Cadena correo;
+    String nombre;
+    String correo;
     Fecha fechaRegistro;
 
     /// Posiciones (no ids) de sus publicaciones dentro del arreglo global.
@@ -47,7 +47,7 @@ struct Usuario {
 
     Usuario() = default;
 
-    Usuario(int idUsuario, const Cadena& nombreUsuario, const Cadena& correoUsuario,
+    Usuario(int idUsuario, const String& nombreUsuario, const String& correoUsuario,
             const Fecha& registro)
         : id(idUsuario), nombre(nombreUsuario), correo(correoUsuario), fechaRegistro(registro) {}
 

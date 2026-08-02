@@ -12,7 +12,7 @@ struct RecolectorAlfabetico {
     Arreglo<int>* destino;
     int limite;
 
-    bool operator()(const Cadena& /*nombre*/, const Arreglo<int>& indices) {
+    bool operator()(const String& /*nombre*/, const Arreglo<int>& indices) {
         for (int i = 0; i < indices.tamanio(); ++i) {
             if (destino->tamanio() >= limite) return false;
             destino->agregar(indices[i]);
@@ -42,7 +42,7 @@ int RedSocial::indiceDeUsuario(int id) const {
 // ===========================================================================
 //  1. GESTION DE USUARIOS
 // ===========================================================================
-int RedSocial::registrarUsuario(const Cadena& nombre, const Cadena& correo,
+int RedSocial::registrarUsuario(const String& nombre, const String& correo,
                                 const Fecha& fechaRegistro) {
     // El correo es la clave natural del sistema: no puede repetirse.
     if (correo.vacia() || _indicePorCorreo.contiene(correo)) return -1;
@@ -120,13 +120,13 @@ Usuario* RedSocial::buscarPorId(int id) {
     return _usuarios[indice].activo ? &_usuarios[indice] : nullptr;
 }
 
-Usuario* RedSocial::buscarPorCorreo(const Cadena& correo) {
+Usuario* RedSocial::buscarPorCorreo(const String& correo) {
     const int* indice = _indicePorCorreo.buscar(correo);
     if (indice == nullptr) return nullptr;
     return _usuarios[*indice].activo ? &_usuarios[*indice] : nullptr;
 }
 
-void RedSocial::buscarPorNombre(const Cadena& nombre, Arreglo<int>& indices) {
+void RedSocial::buscarPorNombre(const String& nombre, Arreglo<int>& indices) {
     indices.limpiar();
     const Arreglo<int>* encontrados = _indicePorNombre.buscar(nombre);
     if (encontrados == nullptr) return;
@@ -136,7 +136,7 @@ void RedSocial::buscarPorNombre(const Cadena& nombre, Arreglo<int>& indices) {
     }
 }
 
-void RedSocial::buscarPorPrefijo(const Cadena& prefijo, int limite, Arreglo<int>& indices) {
+void RedSocial::buscarPorPrefijo(const String& prefijo, int limite, Arreglo<int>& indices) {
     // Se piden mas resultados de los necesarios porque algunos pueden
     // corresponder a usuarios ya eliminados o repetirse (nombre + apellido).
     _indicePrefijos.buscarPorPrefijo(prefijo, limite * 4 + 16, indices);
@@ -166,7 +166,7 @@ void RedSocial::listarEnOrdenAlfabetico(int limite, Arreglo<int>& indices) {
 }
 
 void RedSocial::indexarTextos(int indice) {
-    const Cadena& nombre = _usuarios[indice].nombre;
+    const String& nombre = _usuarios[indice].nombre;
     if (nombre.vacia()) return;
 
     // AVL: un mismo nombre puede corresponder a varios usuarios, por eso el
@@ -177,13 +177,13 @@ void RedSocial::indexarTextos(int indice) {
     // Trie: se indexa el nombre completo y ademas cada palabra suelta, para
     // poder encontrar a "Ana Torres" escribiendo "ana" o escribiendo "torres".
     _indicePrefijos.insertar(nombre, indice);
-    porCadaPalabra(nombre, [&](const Cadena& palabra) {
+    porCadaPalabra(nombre, [&](const String& palabra) {
         if (!(palabra == nombre)) _indicePrefijos.insertar(palabra, indice);
     });
 }
 
 void RedSocial::desindexarTextos(int indice) {
-    const Cadena& nombre = _usuarios[indice].nombre;
+    const String& nombre = _usuarios[indice].nombre;
     if (nombre.vacia()) return;
 
     Arreglo<int>* homonimos = _indicePorNombre.buscar(nombre);
@@ -194,7 +194,7 @@ void RedSocial::desindexarTextos(int indice) {
     }
 
     _indicePrefijos.eliminar(nombre, indice);
-    porCadaPalabra(nombre, [&](const Cadena& palabra) {
+    porCadaPalabra(nombre, [&](const String& palabra) {
         if (!(palabra == nombre)) _indicePrefijos.eliminar(palabra, indice);
     });
 }
@@ -281,7 +281,7 @@ void RedSocial::amigosDe(int id, Arreglo<int>& indicesAmigos) {
 // ===========================================================================
 //  3. PUBLICACIONES
 // ===========================================================================
-int RedSocial::crearPublicacion(int idAutor, const Cadena& texto, const Fecha& fecha) {
+int RedSocial::crearPublicacion(int idAutor, const String& texto, const Fecha& fecha) {
     int indiceAutor = indiceDeUsuario(idAutor);
     if (indiceAutor < 0 || !_usuarios[indiceAutor].activo) return -1;
 
@@ -343,7 +343,7 @@ bool RedSocial::agregarLikes(int idPublicacion, int cantidad) {
     return true;
 }
 
-int RedSocial::comentarPublicacion(int idPublicacion, int idAutor, const Cadena& texto,
+int RedSocial::comentarPublicacion(int idPublicacion, int idAutor, const String& texto,
                                    const Fecha& fecha) {
     Publicacion* publicacion = buscarPublicacion(idPublicacion);
     if (publicacion == nullptr) return -1;
@@ -438,7 +438,7 @@ long long RedSocial::memoriaAproximadaBytes() const {
 
     total += _grafo.memoriaAproximadaBytes();
     total += static_cast<long long>(_indicePorId.capacidad()) * (sizeof(int) * 2 + 1);
-    total += static_cast<long long>(_indicePorCorreo.capacidad()) * (sizeof(Cadena) + sizeof(int) + 1);
+    total += static_cast<long long>(_indicePorCorreo.capacidad()) * (sizeof(String) + sizeof(int) + 1);
     total += static_cast<long long>(_indicePublicacionPorId.capacidad()) * (sizeof(int) * 2 + 1);
     total += static_cast<long long>(_indicePrefijos.cantidadNodos()) * 96;
     return total;

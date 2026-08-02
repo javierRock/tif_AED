@@ -20,7 +20,7 @@
 #include <cstdio>
 
 #include "../estructuras/Arreglo.h"
-#include "../estructuras/Cadena.h"
+#include "../estructuras/String.h"
 
 namespace aed {
 
@@ -41,7 +41,7 @@ public:
 
     /// Lee la siguiente fila y la separa en campos.
     /// Devuelve false cuando ya no quedan filas.
-    bool leerFila(Arreglo<Cadena>& campos);
+    bool leerFila(Arreglo<String>& campos);
 
 private:
     /// Siguiente caracter del archivo, o -1 si se llego al final.
@@ -66,7 +66,7 @@ public:
     void cerrar();
     bool estaAbierto() const { return _archivo != nullptr; }
 
-    void campo(const Cadena& texto);
+    void campo(const String& texto);
     void campo(const char* texto);
     void campo(long long numero);
     void finDeFila();

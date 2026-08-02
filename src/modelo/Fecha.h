@@ -9,7 +9,7 @@
 // ============================================================================
 #pragma once
 
-#include "../estructuras/Cadena.h"
+#include "../estructuras/String.h"
 
 namespace aed {
 
@@ -29,11 +29,11 @@ struct Fecha {
     int comoNumero() const { return anio * 10000 + mes * 100 + dia; }
 
     /// Devuelve el texto en formato ISO "AAAA-MM-DD".
-    Cadena aTexto() const;
+    String aTexto() const;
 
     /// Interpreta un texto "AAAA-MM-DD". Si el formato no es valido devuelve
     /// la fecha por defecto.
-    static Fecha desdeTexto(const Cadena& texto);
+    static Fecha desdeTexto(const String& texto);
 };
 
 inline bool operator<(const Fecha& a, const Fecha& b) {

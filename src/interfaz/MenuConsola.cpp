@@ -93,8 +93,8 @@ void MenuConsola::mostrarMenu() const {
 //  USUARIOS
 // ===========================================================================
 void MenuConsola::registrarUsuario() {
-    Cadena nombre = leerTexto("  Nombre completo: ");
-    Cadena correo = leerTexto("  Correo electronico: ");
+    String nombre = leerTexto("  Nombre completo: ");
+    String correo = leerTexto("  Correo electronico: ");
     if (nombre.vacia() || correo.vacia()) {
         std::printf("  El nombre y el correo son obligatorios.\n");
         return;
@@ -139,7 +139,7 @@ void MenuConsola::buscarUsuario() {
     }
 
     if (modo == 2) {
-        Cadena correo = leerTexto("  Correo: ");
+        String correo = leerTexto("  Correo: ");
         reloj.iniciar();
         Usuario* usuario = _red.buscarPorCorreo(correo);
         double ms = reloj.milisegundos();
@@ -154,11 +154,11 @@ void MenuConsola::buscarUsuario() {
 
     Arreglo<int> indices;
     if (modo == 3) {
-        Cadena nombre = leerTexto("  Nombre exacto: ");
+        String nombre = leerTexto("  Nombre exacto: ");
         reloj.iniciar();
         _red.buscarPorNombre(nombre, indices);
     } else if (modo == 4) {
-        Cadena prefijo = leerTexto("  Prefijo: ");
+        String prefijo = leerTexto("  Prefijo: ");
         reloj.iniciar();
         _red.buscarPorPrefijo(prefijo, 20, indices);
     } else {
@@ -302,7 +302,7 @@ void MenuConsola::sugerenciasDeAmistad() {
 // ===========================================================================
 void MenuConsola::crearPublicacion() {
     int id = leerEntero("  ID del autor: ");
-    Cadena texto = leerTexto("  Texto de la publicacion: ");
+    String texto = leerTexto("  Texto de la publicacion: ");
     if (texto.vacia()) {
         std::printf("  El texto no puede estar vacio.\n");
         return;
@@ -365,7 +365,7 @@ void MenuConsola::interactuarConPublicacion() {
     }
     if (accion == 2) {
         int idAutor = leerEntero("  ID del autor del comentario: ");
-        Cadena texto = leerTexto("  Comentario: ");
+        String texto = leerTexto("  Comentario: ");
         int idComentario = _red.comentarPublicacion(idPublicacion, idAutor, texto, fechaDeHoy());
         if (idComentario < 0) {
             std::printf("  No se pudo comentar: el autor no existe.\n");
@@ -550,7 +550,7 @@ void MenuConsola::mostrarPublicacion(int indice, bool conComentarios) const {
 // ===========================================================================
 //  Entrada de datos
 // ===========================================================================
-Cadena MenuConsola::leerTexto(const char* mensaje) {
+String MenuConsola::leerTexto(const char* mensaje) {
     std::printf("%s", mensaje);
     std::fflush(stdout);
 
@@ -559,14 +559,14 @@ Cadena MenuConsola::leerTexto(const char* mensaje) {
 
     if (std::cin.eof()) {
         _entradaCerrada = true;
-        return Cadena();
+        return String();
     }
     if (std::cin.fail()) {
         // La linea era mas larga que el buffer: se descarta el resto.
         std::cin.clear();
         while (std::cin.get() != '\n' && !std::cin.eof()) {}
     }
-    return Cadena(buffer);
+    return String(buffer);
 }
 
 int MenuConsola::leerEntero(const char* mensaje) {

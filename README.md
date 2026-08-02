@@ -52,7 +52,7 @@ Todas están en `src/estructuras/`. Ninguna usa la STL.
 
 | Estructura               | Archivo                         | Dónde se usa                     | Por qué esa y no otra                                                                                         |
 | ------------------------ | ------------------------------- | -------------------------------- | ------------------------------------------------------------------------------------------------------------- |
-| **Cadena**               | `Cadena.h/.cpp`                 | Nombres, correos, textos         | Reemplaza a `std::string`. Con semántica de movimiento para no copiar millones de textos                      |
+| **String**               | `String.h/.cpp`                 | Nombres, correos, textos         | Reemplaza a `std::string`. Con semántica de movimiento para no copiar millones de textos                      |
 | **Arreglo\<T\>**         | `Arreglo.h`                     | Base de todo                     | Reemplaza a `std::vector`. Crecimiento geométrico, O(1) amortizado                                            |
 | **ListaEnlazada\<T\>**   | `ListaEnlazada.h`               | Comentarios de cada publicación  | Pocos elementos por publicación y siempre se agregan al final: no desperdicia capacidad reservada × 2 000 000 |
 | **Pila\<T\>**            | `Pila.h`                        | Reconstruir el camino de amistad | El BFS descubre el camino al revés; apilar y desapilar lo invierte sin código extra                           |
@@ -242,7 +242,7 @@ por estructura. Las más relevantes:
 src/
 ├── estructuras/     Estructuras de datos genéricas (sin dependencias del dominio)
 │   ├── Utilidades.h      mover, intercambiar, comparadores
-│   ├── Cadena.h/.cpp     cadena de texto propia
+│   ├── String.h/.cpp     cadena de texto propia
 │   ├── Arreglo.h         arreglo dinámico
 │   ├── ListaEnlazada.h   lista simplemente enlazada
 │   ├── Pila.h            pila LIFO

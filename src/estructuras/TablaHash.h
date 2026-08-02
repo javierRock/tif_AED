@@ -27,7 +27,7 @@
 // ============================================================================
 #pragma once
 
-#include "Cadena.h"
+#include "String.h"
 #include "Utilidades.h"
 
 namespace aed {
@@ -54,7 +54,7 @@ inline unsigned long long calcularHash(long long clave) {
     return mezclarBits(static_cast<unsigned long long>(clave));
 }
 
-inline unsigned long long calcularHash(const Cadena& clave) {
+inline unsigned long long calcularHash(const String& clave) {
     return clave.codigoHash();
 }
 
@@ -162,7 +162,7 @@ public:
         int posicion = posicionDe(clave);
         if (posicion < 0) return false;
         _casillas[posicion].estado = BORRADA;
-        _casillas[posicion].clave = Clave();  // libera memoria si la clave es Cadena
+        _casillas[posicion].clave = Clave();  // libera memoria si la clave es String
         _casillas[posicion].valor = Valor();
         --_tamanio;
         ++_borradas;

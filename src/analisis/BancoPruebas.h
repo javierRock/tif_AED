@@ -17,13 +17,13 @@
 
 #include "../datos/GeneradorSintetico.h"
 #include "../estructuras/Arreglo.h"
-#include "../estructuras/Cadena.h"
+#include "../estructuras/String.h"
 #include "../sistema/RedSocial.h"
 
 namespace aed {
 
 struct ResultadoPrueba {
-    Cadena operacion;
+    String operacion;
     long long escala = 0;             // numero de usuarios de la prueba
     long long repeticiones = 0;       // cuantas veces se ejecuto la operacion
     double milisegundosTotales = 0.0;

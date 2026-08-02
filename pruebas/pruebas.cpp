@@ -13,7 +13,7 @@
 #include "../src/datos/GeneradorSintetico.h"
 #include "../src/estructuras/ArbolAVL.h"
 #include "../src/estructuras/Arreglo.h"
-#include "../src/estructuras/Cadena.h"
+#include "../src/estructuras/String.h"
 #include "../src/estructuras/Cola.h"
 #include "../src/estructuras/ListaEnlazada.h"
 #include "../src/estructuras/MonticuloMinimo.h"
@@ -52,44 +52,44 @@ void comprobar(bool condicion, const char* descripcion) {
 }  // namespace
 
 // ===========================================================================
-//  Cadena
+//  String
 // ===========================================================================
-void probarCadena() {
-    comenzarGrupo("Cadena");
+void probarString() {
+    comenzarGrupo("String");
 
-    Cadena vacia;
+    String vacia;
     comprobar(vacia.vacia() && vacia.longitud() == 0, "una cadena recien creada esta vacia");
 
-    Cadena saludo("Hola");
+    String saludo("Hola");
     saludo.agregar(" mundo");
     comprobar(saludo.longitud() == 10, "agregar concatena y actualiza la longitud");
-    comprobar(Cadena(saludo.texto()) == Cadena("Hola mundo"), "el contenido es el esperado");
+    comprobar(String(saludo.texto()) == String("Hola mundo"), "el contenido es el esperado");
 
-    Cadena copia(saludo);
+    String copia(saludo);
     comprobar(copia == saludo, "el constructor de copia duplica el contenido");
 
-    Cadena movida(mover(copia));
+    String movida(mover(copia));
     comprobar(movida == saludo && copia.vacia(), "el movimiento traslada y deja vacia la origen");
 
-    comprobar(saludo.subcadena(0, 4) == Cadena("Hola"), "subcadena extrae el trozo pedido");
-    comprobar(saludo.comienzaCon(Cadena("Hola")), "comienzaCon detecta el prefijo");
-    comprobar(!saludo.comienzaCon(Cadena("mundo")), "comienzaCon rechaza lo que no es prefijo");
-    comprobar(saludo.contiene(Cadena("mun")), "contiene encuentra el patron interno");
-    comprobar(Cadena("ABC").aMinusculas() == Cadena("abc"), "aMinusculas convierte el texto");
+    comprobar(saludo.subcadena(0, 4) == String("Hola"), "subcadena extrae el trozo pedido");
+    comprobar(saludo.comienzaCon(String("Hola")), "comienzaCon detecta el prefijo");
+    comprobar(!saludo.comienzaCon(String("mundo")), "comienzaCon rechaza lo que no es prefijo");
+    comprobar(saludo.contiene(String("mun")), "contiene encuentra el patron interno");
+    comprobar(String("ABC").aMinusculas() == String("abc"), "aMinusculas convierte el texto");
 
-    comprobar(Cadena("ana") < Cadena("beto"), "el orden alfabetico funciona");
-    comprobar(Cadena::desdeEntero(-1234) == Cadena("-1234"), "desdeEntero convierte numeros");
-    comprobar(Cadena("4321").aEntero() == 4321, "aEntero interpreta el texto");
+    comprobar(String("ana") < String("beto"), "el orden alfabetico funciona");
+    comprobar(String::desdeEntero(-1234) == String("-1234"), "desdeEntero convierte numeros");
+    comprobar(String("4321").aEntero() == 4321, "aEntero interpreta el texto");
 
-    comprobar(Cadena("hola").codigoHash() == Cadena("hola").codigoHash(),
+    comprobar(String("hola").codigoHash() == String("hola").codigoHash(),
               "el hash es igual para cadenas iguales");
-    comprobar(Cadena("hola").codigoHash() != Cadena("holb").codigoHash(),
+    comprobar(String("hola").codigoHash() != String("holb").codigoHash(),
               "el hash cambia si cambia el texto");
 
     // Al asignar una cadena corta sobre una larga debe quedar solo la corta.
-    Cadena reutilizada("texto muy largo de ejemplo");
-    reutilizada = Cadena("ab");
-    comprobar(reutilizada.longitud() == 2 && reutilizada == Cadena("ab"),
+    String reutilizada("texto muy largo de ejemplo");
+    reutilizada = String("ab");
+    comprobar(reutilizada.longitud() == 2 && reutilizada == String("ab"),
               "asignar una cadena corta sobre una larga la trunca bien");
 }
 
@@ -123,11 +123,11 @@ void probarArreglo() {
     comprobar(ordenado.buscarBinario(40) == 3, "la busqueda binaria encuentra la posicion");
     comprobar(ordenado.buscarBinario(99) == -1, "la busqueda binaria devuelve -1 si no esta");
 
-    Arreglo<Cadena> textos;
-    textos.agregar(Cadena("uno"));
-    textos.agregar(Cadena("dos"));
-    Arreglo<Cadena> copiaTextos(textos);
-    comprobar(copiaTextos.tamanio() == 2 && copiaTextos[1] == Cadena("dos"),
+    Arreglo<String> textos;
+    textos.agregar(String("uno"));
+    textos.agregar(String("dos"));
+    Arreglo<String> copiaTextos(textos);
+    comprobar(copiaTextos.tamanio() == 2 && copiaTextos[1] == String("dos"),
               "el arreglo copia correctamente objetos con memoria propia");
 }
 
@@ -257,11 +257,11 @@ void probarTablaHash() {
     }
     comprobar(paresAusentes, "las claves borradas ya no se encuentran");
 
-    TablaHash<Cadena, int> porTexto;
-    porTexto.insertar(Cadena("ana@correo.com"), 1);
-    porTexto.insertar(Cadena("luis@correo.com"), 2);
-    comprobar(*porTexto.buscar(Cadena("luis@correo.com")) == 2, "funciona con claves de texto");
-    comprobar(porTexto.buscar(Cadena("nadie@correo.com")) == nullptr,
+    TablaHash<String, int> porTexto;
+    porTexto.insertar(String("ana@correo.com"), 1);
+    porTexto.insertar(String("luis@correo.com"), 2);
+    comprobar(*porTexto.buscar(String("luis@correo.com")) == 2, "funciona con claves de texto");
+    comprobar(porTexto.buscar(String("nadie@correo.com")) == nullptr,
               "no confunde claves de texto distintas");
 }
 
@@ -351,11 +351,11 @@ void probarArbolAVL() {
     comprobar(arbol.buscar(0) == nullptr && arbol.buscar(1) != nullptr,
               "solo desaparecen las claves eliminadas");
 
-    ArbolAVL<Cadena, int> porNombre;
-    porNombre.insertar(Cadena("Zoe"), 1);
-    porNombre.insertar(Cadena("Ana"), 2);
-    porNombre.insertar(Cadena("Marco"), 3);
-    comprobar(*porNombre.buscar(Cadena("Ana")) == 2, "funciona con claves de texto");
+    ArbolAVL<String, int> porNombre;
+    porNombre.insertar(String("Zoe"), 1);
+    porNombre.insertar(String("Ana"), 2);
+    porNombre.insertar(String("Marco"), 3);
+    comprobar(*porNombre.buscar(String("Ana")) == 2, "funciona con claves de texto");
 }
 
 // ===========================================================================
@@ -365,29 +365,29 @@ void probarTrie() {
     comenzarGrupo("Trie de prefijos");
 
     Trie trie;
-    trie.insertar(Cadena("Maria"), 1);
-    trie.insertar(Cadena("Mariana"), 2);
-    trie.insertar(Cadena("Marco"), 3);
-    trie.insertar(Cadena("Ana"), 4);
+    trie.insertar(String("Maria"), 1);
+    trie.insertar(String("Mariana"), 2);
+    trie.insertar(String("Marco"), 3);
+    trie.insertar(String("Ana"), 4);
 
     Arreglo<int> resultado;
-    trie.buscarPorPrefijo(Cadena("Mar"), 10, resultado);
+    trie.buscarPorPrefijo(String("Mar"), 10, resultado);
     comprobar(resultado.tamanio() == 3, "el prefijo 'Mar' encuentra tres coincidencias");
 
-    trie.buscarPorPrefijo(Cadena("Maria"), 10, resultado);
+    trie.buscarPorPrefijo(String("Maria"), 10, resultado);
     comprobar(resultado.tamanio() == 2, "el prefijo 'Maria' encuentra a Maria y Mariana");
 
-    trie.buscarPorPrefijo(Cadena("mar"), 10, resultado);
+    trie.buscarPorPrefijo(String("mar"), 10, resultado);
     comprobar(resultado.tamanio() == 3, "la busqueda no distingue mayusculas de minusculas");
 
-    trie.buscarPorPrefijo(Cadena("Zzz"), 10, resultado);
+    trie.buscarPorPrefijo(String("Zzz"), 10, resultado);
     comprobar(resultado.vacio(), "un prefijo inexistente no devuelve nada");
 
-    trie.buscarPorPrefijo(Cadena("Mar"), 2, resultado);
+    trie.buscarPorPrefijo(String("Mar"), 2, resultado);
     comprobar(resultado.tamanio() == 2, "se respeta el limite de resultados");
 
-    comprobar(trie.eliminar(Cadena("Marco"), 3), "eliminar encuentra y quita el id");
-    trie.buscarPorPrefijo(Cadena("Mar"), 10, resultado);
+    comprobar(trie.eliminar(String("Marco"), 3), "eliminar encuentra y quita el id");
+    trie.buscarPorPrefijo(String("Mar"), 10, resultado);
     comprobar(resultado.tamanio() == 2, "tras eliminar quedan dos coincidencias");
 }
 
@@ -513,26 +513,26 @@ void probarRedSocial() {
     comenzarGrupo("RedSocial");
 
     RedSocial red;
-    int ana = red.registrarUsuario(Cadena("Ana Torres"), Cadena("ana@correo.com"), Fecha(2020, 1, 5));
-    int luis = red.registrarUsuario(Cadena("Luis Rojas"), Cadena("luis@correo.com"), Fecha(2021, 3, 8));
-    int mara = red.registrarUsuario(Cadena("Maria Flores"), Cadena("maria@correo.com"), Fecha(2022, 6, 1));
+    int ana = red.registrarUsuario(String("Ana Torres"), String("ana@correo.com"), Fecha(2020, 1, 5));
+    int luis = red.registrarUsuario(String("Luis Rojas"), String("luis@correo.com"), Fecha(2021, 3, 8));
+    int mara = red.registrarUsuario(String("Maria Flores"), String("maria@correo.com"), Fecha(2022, 6, 1));
 
     comprobar(ana > 0 && luis > 0 && mara > 0, "los tres usuarios se registraron");
     comprobar(red.cantidadUsuariosActivos() == 3, "el contador de activos es correcto");
-    comprobar(red.registrarUsuario(Cadena("Otra"), Cadena("ana@correo.com"), Fecha()) == -1,
+    comprobar(red.registrarUsuario(String("Otra"), String("ana@correo.com"), Fecha()) == -1,
               "no se admiten dos usuarios con el mismo correo");
 
     comprobar(red.buscarPorId(ana) != nullptr, "busqueda por ID");
-    comprobar(red.buscarPorCorreo(Cadena("luis@correo.com"))->id == luis, "busqueda por correo");
+    comprobar(red.buscarPorCorreo(String("luis@correo.com"))->id == luis, "busqueda por correo");
 
     Arreglo<int> encontrados;
-    red.buscarPorNombre(Cadena("Ana Torres"), encontrados);
+    red.buscarPorNombre(String("Ana Torres"), encontrados);
     comprobar(encontrados.tamanio() == 1, "busqueda por nombre exacto en el AVL");
 
-    red.buscarPorPrefijo(Cadena("mar"), 10, encontrados);
+    red.buscarPorPrefijo(String("mar"), 10, encontrados);
     comprobar(encontrados.tamanio() == 1, "busqueda por prefijo en el trie");
 
-    red.buscarPorPrefijo(Cadena("flo"), 10, encontrados);
+    red.buscarPorPrefijo(String("flo"), 10, encontrados);
     comprobar(encontrados.tamanio() == 1, "el trie tambien indexa el apellido");
 
     // --- Amistades ---------------------------------------------------------
@@ -555,12 +555,12 @@ void probarRedSocial() {
               "se sugiere a Maria por compartir un amigo");
 
     // --- Publicaciones -----------------------------------------------------
-    int pub1 = red.crearPublicacion(ana, Cadena("Hola a todos"), Fecha(2026, 1, 1));
-    int pub2 = red.crearPublicacion(ana, Cadena("Segunda publicacion"), Fecha(2026, 1, 2));
+    int pub1 = red.crearPublicacion(ana, String("Hola a todos"), Fecha(2026, 1, 1));
+    int pub2 = red.crearPublicacion(ana, String("Segunda publicacion"), Fecha(2026, 1, 2));
     comprobar(pub1 > 0 && pub2 > 0, "se crearon las publicaciones");
 
     red.agregarLikes(pub1, 50);
-    red.comentarPublicacion(pub1, luis, Cadena("Muy bueno"), Fecha(2026, 1, 3));
+    red.comentarPublicacion(pub1, luis, String("Muy bueno"), Fecha(2026, 1, 3));
     comprobar(red.buscarPublicacion(pub1)->numeroLikes == 50, "los likes se acumulan");
     comprobar(red.buscarPublicacion(pub1)->numeroComentarios() == 1, "el comentario se guarda");
     comprobar(red.buscarPorId(ana)->reaccionesRecibidas == 51,
@@ -590,18 +590,18 @@ void probarRedSocial() {
     comprobar(red.eliminarUsuario(luis), "se elimina a Luis");
     comprobar(red.cantidadUsuariosActivos() == 2, "el contador de activos baja");
     comprobar(red.buscarPorId(luis) == nullptr, "Luis ya no se encuentra por ID");
-    comprobar(red.buscarPorCorreo(Cadena("luis@correo.com")) == nullptr,
+    comprobar(red.buscarPorCorreo(String("luis@correo.com")) == nullptr,
               "su correo queda liberado del indice");
     comprobar(red.buscarPorId(ana)->cantidadAmigos == 0,
               "los amigos de Luis pierden esa amistad");
     comprobar(!red.caminoDeAmistad(ana, mara, camino),
               "sin Luis no queda camino entre Ana y Maria");
 
-    red.buscarPorNombre(Cadena("Luis Rojas"), encontrados);
+    red.buscarPorNombre(String("Luis Rojas"), encontrados);
     comprobar(encontrados.vacio(), "su nombre desaparece del AVL");
 
     // La posicion liberada debe reutilizarse en el siguiente registro.
-    int nuevo = red.registrarUsuario(Cadena("Pedro Vargas"), Cadena("pedro@correo.com"),
+    int nuevo = red.registrarUsuario(String("Pedro Vargas"), String("pedro@correo.com"),
                                      Fecha(2026, 2, 2));
     comprobar(nuevo > 0 && red.cantidadUsuariosActivos() == 3, "se registra un usuario nuevo");
     comprobar(red.cantidadPosicionesUsuario() == 3,
@@ -667,7 +667,7 @@ int main() {
     std::printf("  PRUEBAS AUTOMATICAS DEL PROYECTO\n");
     std::printf("============================================================\n");
 
-    probarCadena();
+    probarString();
     probarArreglo();
     probarOrdenamiento();
     probarListaPilaCola();

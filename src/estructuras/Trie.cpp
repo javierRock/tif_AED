@@ -32,8 +32,8 @@ void Trie::limpiar() {
 // ---------------------------------------------------------------------------
 // Insercion: se baja letra por letra creando los nodos que falten.
 // ---------------------------------------------------------------------------
-void Trie::insertar(const Cadena& texto, int id) {
-    Cadena normalizado = texto.aMinusculas();
+void Trie::insertar(const String& texto, int id) {
+    String normalizado = texto.aMinusculas();
     Nodo* actual = _raiz;
 
     for (int i = 0; i < normalizado.longitud(); ++i) {
@@ -53,8 +53,8 @@ void Trie::insertar(const Cadena& texto, int id) {
 // ---------------------------------------------------------------------------
 // Eliminacion: se localiza el nodo terminal y se quita el id de su lista.
 // ---------------------------------------------------------------------------
-bool Trie::eliminar(const Cadena& texto, int id) {
-    Cadena normalizado = texto.aMinusculas();
+bool Trie::eliminar(const String& texto, int id) {
+    String normalizado = texto.aMinusculas();
     Nodo* actual = _raiz;
 
     for (int i = 0; i < normalizado.longitud(); ++i) {
@@ -72,11 +72,11 @@ bool Trie::eliminar(const Cadena& texto, int id) {
 // Busqueda por prefijo: primero se desciende hasta el nodo del prefijo y
 // desde ahi se recolectan en profundidad los ids del subarbol.
 // ---------------------------------------------------------------------------
-void Trie::buscarPorPrefijo(const Cadena& prefijo, int limite, Arreglo<int>& resultado) const {
+void Trie::buscarPorPrefijo(const String& prefijo, int limite, Arreglo<int>& resultado) const {
     resultado.limpiar();
     if (prefijo.vacia() || limite <= 0) return;
 
-    Cadena normalizado = prefijo.aMinusculas();
+    String normalizado = prefijo.aMinusculas();
     const Nodo* actual = _raiz;
 
     for (int i = 0; i < normalizado.longitud(); ++i) {

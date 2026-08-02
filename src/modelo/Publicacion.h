@@ -16,7 +16,7 @@
 // ============================================================================
 #pragma once
 
-#include "../estructuras/Cadena.h"
+#include "../estructuras/String.h"
 #include "../estructuras/ListaEnlazada.h"
 #include "Comentario.h"
 #include "Fecha.h"
@@ -27,14 +27,14 @@ struct Publicacion {
     int id = -1;               // identificador unico de la publicacion
     int idPropietario = -1;    // id del usuario que la creo
     Fecha fecha;
-    Cadena texto;
+    String texto;
     int numeroLikes = 0;
     ListaEnlazada<Comentario> comentarios;
     bool activa = true;
 
     Publicacion() = default;
 
-    Publicacion(int idPublicacion, int propietario, const Fecha& cuando, const Cadena& contenido)
+    Publicacion(int idPublicacion, int propietario, const Fecha& cuando, const String& contenido)
         : id(idPublicacion), idPropietario(propietario), fecha(cuando), texto(contenido) {}
 
     int numeroComentarios() const { return comentarios.tamanio(); }

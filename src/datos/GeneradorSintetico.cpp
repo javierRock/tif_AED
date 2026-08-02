@@ -103,14 +103,14 @@ void GeneradorSintetico::generarUsuarios(RedSocial& red, const ParametrosGenerac
         const char* nombrePila = NOMBRES[azar.enteroMenorQue(CANTIDAD_NOMBRES)];
         const char* apellido = APELLIDOS[azar.enteroMenorQue(CANTIDAD_APELLIDOS)];
 
-        Cadena nombreCompleto(nombrePila);
+        String nombreCompleto(nombrePila);
         nombreCompleto.agregar(" ");
         nombreCompleto.agregar(apellido);
 
         // El numero de usuario garantiza que el correo nunca se repita.
         std::snprintf(bufferCorreo, sizeof(bufferCorreo), "%s.%s%d@redsocial.pe",
                       nombrePila, apellido, i);
-        Cadena correo(bufferCorreo);
+        String correo(bufferCorreo);
 
         red.registrarUsuario(nombreCompleto, correo, fechaAleatoria(azar, 2008, 2026));
         informarAvance("Usuarios", i + 1, parametros.cantidadUsuarios, parametros.mostrarProgreso);
@@ -203,7 +203,7 @@ void GeneradorSintetico::generarPublicaciones(RedSocial& red,
         const char* plantilla = PLANTILLAS_TEXTO[azar.enteroMenorQue(CANTIDAD_PLANTILLAS)];
         std::snprintf(bufferTexto, sizeof(bufferTexto), "%s [#%d]", plantilla, i);
 
-        red.crearPublicacion(autor.id, Cadena(bufferTexto), fechaAleatoria(azar, 2020, 2026));
+        red.crearPublicacion(autor.id, String(bufferTexto), fechaAleatoria(azar, 2020, 2026));
         informarAvance("Publicaciones", i + 1, parametros.cantidadPublicaciones,
                        parametros.mostrarProgreso);
     }
@@ -239,7 +239,7 @@ void GeneradorSintetico::generarInteracciones(RedSocial& red,
             if (!autor.activo) continue;
 
             const char* texto = COMENTARIOS[azar.enteroMenorQue(CANTIDAD_COMENTARIOS)];
-            red.comentarPublicacion(idPublicacion, autor.id, Cadena(texto),
+            red.comentarPublicacion(idPublicacion, autor.id, String(texto),
                                     fechaAleatoria(azar, 2020, 2026));
         }
         informarAvance("Interacciones", i + 1, totalPublicaciones, parametros.mostrarProgreso);

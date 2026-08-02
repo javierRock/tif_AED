@@ -12,7 +12,7 @@ CXXFLAGS := -std=c++17 -O2 -Wall -Wextra
 DIR_OBJ  := build
 
 FUENTES_NUCLEO := \
-	src/estructuras/Cadena.cpp \
+	src/estructuras/String.cpp \
 	src/estructuras/Trie.cpp \
 	src/modelo/Fecha.cpp \
 	src/sistema/GrafoAmistades.cpp \

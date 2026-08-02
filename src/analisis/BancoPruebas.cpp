@@ -14,7 +14,7 @@ namespace {
 void anotar(Arreglo<ResultadoPrueba>& resultados, const char* operacion, long long escala,
             long long repeticiones, double milisegundos) {
     ResultadoPrueba resultado;
-    resultado.operacion = Cadena(operacion);
+    resultado.operacion = String(operacion);
     resultado.escala = escala;
     resultado.repeticiones = repeticiones;
     resultado.milisegundosTotales = milisegundos;
@@ -69,8 +69,8 @@ void BancoPruebas::medirOperaciones(RedSocial& red, Arreglo<ResultadoPrueba>& re
     // -----------------------------------------------------------------------
     //  2. Busqueda por CORREO en la TABLA HASH  ->  O(1) con clave de texto
     // -----------------------------------------------------------------------
-    Arreglo<Cadena> correos;
-    Arreglo<Cadena> nombres;
+    Arreglo<String> correos;
+    Arreglo<String> nombres;
     int muestraTexto = muestra.tamanio() < 20000 ? muestra.tamanio() : 20000;
     correos.reservar(muestraTexto);
     nombres.reservar(muestraTexto);
@@ -110,7 +110,7 @@ void BancoPruebas::medirOperaciones(RedSocial& red, Arreglo<ResultadoPrueba>& re
     const int CONSULTAS_PREFIJO = 5000;
     reloj.iniciar();
     for (int i = 0; i < CONSULTAS_PREFIJO; ++i) {
-        const Cadena& nombre = nombres[i % nombres.tamanio()];
+        const String& nombre = nombres[i % nombres.tamanio()];
         red.buscarPorPrefijo(nombre.subcadena(0, 3), 10, coincidencias);
     }
     anotar(resultados, "Buscar por prefijo (Trie)", escala, CONSULTAS_PREFIJO,

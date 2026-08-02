@@ -20,7 +20,7 @@
 #pragma once
 
 #include "Arreglo.h"
-#include "Cadena.h"
+#include "String.h"
 
 namespace aed {
 
@@ -34,15 +34,15 @@ public:
 
     /// Indexa 'texto' (se normaliza a minusculas) apuntando al id indicado.
     /// Coste O(longitud del texto).
-    void insertar(const Cadena& texto, int id);
+    void insertar(const String& texto, int id);
 
     /// Quita el id del nodo terminal correspondiente. Los nodos vacios se
     /// conservan: reaprovecharlos cuesta menos que reconstruir el camino.
-    bool eliminar(const Cadena& texto, int id);
+    bool eliminar(const String& texto, int id);
 
     /// Deja en 'resultado' hasta 'limite' ids cuyo texto empieza con el
     /// prefijo dado. Coste O(longitud del prefijo + nodos visitados).
-    void buscarPorPrefijo(const Cadena& prefijo, int limite, Arreglo<int>& resultado) const;
+    void buscarPorPrefijo(const String& prefijo, int limite, Arreglo<int>& resultado) const;
 
     int cantidadNodos() const { return _cantidadNodos; }
     void limpiar();

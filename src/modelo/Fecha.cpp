@@ -4,14 +4,14 @@
 
 namespace aed {
 
-Cadena Fecha::aTexto() const {
+String Fecha::aTexto() const {
     char temporal[16];
     std::snprintf(temporal, sizeof(temporal), "%04d-%02d-%02d",
                   static_cast<int>(anio), static_cast<int>(mes), static_cast<int>(dia));
-    return Cadena(temporal);
+    return String(temporal);
 }
 
-Fecha Fecha::desdeTexto(const Cadena& texto) {
+Fecha Fecha::desdeTexto(const String& texto) {
     // Formato esperado: AAAA-MM-DD (10 caracteres).
     if (texto.longitud() < 10) return Fecha();
 

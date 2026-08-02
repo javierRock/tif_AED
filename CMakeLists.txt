@@ -17,7 +17,7 @@ add_compile_options(-Wall -Wextra)
 # codigo compilado.
 # ---------------------------------------------------------------------------
 add_library(nucleo STATIC
-    src/estructuras/Cadena.cpp
+    src/estructuras/String.cpp
     src/estructuras/Trie.cpp
     src/modelo/Fecha.cpp
     src/sistema/GrafoAmistades.cpp

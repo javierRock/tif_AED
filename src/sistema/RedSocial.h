@@ -40,7 +40,7 @@
 
 #include "../estructuras/ArbolAVL.h"
 #include "../estructuras/Arreglo.h"
-#include "../estructuras/Cadena.h"
+#include "../estructuras/String.h"
 #include "../estructuras/TablaHash.h"
 #include "../estructuras/Trie.h"
 #include "../modelo/Publicacion.h"
@@ -78,7 +78,7 @@ public:
 
     /// Registra un usuario nuevo. Devuelve su id, o -1 si el correo ya existe.
     /// O(1) promedio en las tablas hash + O(log n) en el AVL de nombres.
-    int registrarUsuario(const Cadena& nombre, const Cadena& correo, const Fecha& fechaRegistro);
+    int registrarUsuario(const String& nombre, const String& correo, const Fecha& fechaRegistro);
 
     /// Borrado logico: desconecta al usuario del grafo, elimina sus
     /// publicaciones y lo quita de todos los indices.
@@ -87,14 +87,14 @@ public:
 
     // ---- Busquedas (funcionalidad "Buscar usuarios") ----------------------
     Usuario* buscarPorId(int id);
-    Usuario* buscarPorCorreo(const Cadena& correo);
+    Usuario* buscarPorCorreo(const String& correo);
 
     /// Nombre exacto usando el AVL. Puede haber homonimos, por eso devuelve
     /// una lista de indices. O(log n).
-    void buscarPorNombre(const Cadena& nombre, Arreglo<int>& indices);
+    void buscarPorNombre(const String& nombre, Arreglo<int>& indices);
 
     /// Autocompletado por prefijo usando el trie. O(longitud del prefijo).
-    void buscarPorPrefijo(const Cadena& prefijo, int limite, Arreglo<int>& indices);
+    void buscarPorPrefijo(const String& prefijo, int limite, Arreglo<int>& indices);
 
     /// Recorrido en orden del AVL: primeros 'limite' nombres alfabeticamente.
     void listarEnOrdenAlfabetico(int limite, Arreglo<int>& indices);
@@ -121,7 +121,7 @@ public:
     // =======================================================================
     //  3. PUBLICACIONES
     // =======================================================================
-    int crearPublicacion(int idAutor, const Cadena& texto, const Fecha& fecha);
+    int crearPublicacion(int idAutor, const String& texto, const Fecha& fecha);
     bool eliminarPublicacion(int idPublicacion);
     bool darLike(int idPublicacion);
 
@@ -129,7 +129,7 @@ public:
     /// llamar a darLike() cien millones de veces desperdiciaria una busqueda
     /// en la tabla hash por cada like.
     bool agregarLikes(int idPublicacion, int cantidad);
-    int comentarPublicacion(int idPublicacion, int idAutor, const Cadena& texto,
+    int comentarPublicacion(int idPublicacion, int idAutor, const String& texto,
                             const Fecha& fecha);
 
     Publicacion* buscarPublicacion(int idPublicacion);
@@ -191,7 +191,7 @@ private:
 
     /// Separa un nombre completo en palabras y ejecuta 'accion' con cada una.
     template <typename Accion>
-    static void porCadaPalabra(const Cadena& texto, Accion accion) {
+    static void porCadaPalabra(const String& texto, Accion accion) {
         int inicio = 0;
         for (int i = 0; i <= texto.longitud(); ++i) {
             bool finDePalabra = (i == texto.longitud()) || (texto[i] == ' ');
@@ -209,9 +209,9 @@ private:
 
     // ---- Indices ----------------------------------------------------------
     TablaHash<int, int> _indicePorId;
-    TablaHash<Cadena, int> _indicePorCorreo;
+    TablaHash<String, int> _indicePorCorreo;
     TablaHash<int, int> _indicePublicacionPorId;
-    ArbolAVL<Cadena, Arreglo<int>> _indicePorNombre;
+    ArbolAVL<String, Arreglo<int>> _indicePorNombre;
     Trie _indicePrefijos;
 
     // ---- Contadores y huecos reutilizables --------------------------------
