@@ -176,9 +176,8 @@ void RedSocial::indexarTextos(int indice) {
 
 
 
-    _indicePrefijos.insertar(nombre, indice);
     porCadaPalabra(nombre, [&](const String& palabra) {
-        if (!(palabra == nombre)) _indicePrefijos.insertar(palabra, indice);
+        _indicePrefijos.insertar(palabra, indice);
     });
 }
 
@@ -193,9 +192,8 @@ void RedSocial::desindexarTextos(int indice) {
         if (homonimos->vacio()) _indicePorNombre.eliminar(nombre);
     }
 
-    _indicePrefijos.eliminar(nombre, indice);
     porCadaPalabra(nombre, [&](const String& palabra) {
-        if (!(palabra == nombre)) _indicePrefijos.eliminar(palabra, indice);
+        _indicePrefijos.eliminar(palabra, indice);
     });
 }
 
@@ -441,6 +439,8 @@ long long RedSocial::memoriaAproximadaBytes() const {
     total += static_cast<long long>(_indicePorCorreo.capacidad()) * (sizeof(String) + sizeof(int) + 1);
     total += static_cast<long long>(_indicePublicacionPorId.capacidad()) * (sizeof(int) * 2 + 1);
     total += static_cast<long long>(_indicePrefijos.cantidadNodos()) * 96;
+    total += static_cast<long long>(_indicePorNombre.tamanio()) *
+             (sizeof(String) + sizeof(Arreglo<int>) + 48);
     return total;
 }
 

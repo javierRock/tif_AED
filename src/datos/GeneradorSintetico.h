@@ -46,6 +46,8 @@ public:
 
     static void generar(RedSocial& red, const ParametrosGeneracion& parametros);
 
+    static long long combinacionesDeNombre();
+
 private:
     static void generarUsuarios(RedSocial& red, const ParametrosGeneracion& parametros,
                                 GeneradorAleatorio& azar);

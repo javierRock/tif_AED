@@ -295,8 +295,15 @@ void BancoPruebas::ejecutarSerieDeEscalas(int usuariosMaximos, const char* rutaC
     int escalas[] = {10000, 100000, 1000000, 2000000};
     int cantidadEscalas = static_cast<int>(sizeof(escalas) / sizeof(escalas[0]));
 
+    long long combinaciones = GeneradorSintetico::combinacionesDeNombre();
+
     for (int i = 0; i < cantidadEscalas; ++i) {
         if (escalas[i] > usuariosMaximos) break;
+        if (escalas[i] > combinaciones) {
+            std::printf("  Escala de %d usuarios omitida: solo hay %lld nombres distintos.\n",
+                        escalas[i], combinaciones);
+            break;
+        }
 
         ParametrosGeneracion parametros;
         parametros.cantidadUsuarios = escalas[i];

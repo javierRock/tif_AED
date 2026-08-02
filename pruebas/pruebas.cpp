@@ -608,6 +608,16 @@ void probarRedSocial() {
               "se reutilizo el hueco del usuario eliminado");
     comprobar(red.buscarPorId(nuevo)->cantidadAmigos == 0,
               "el usuario nuevo no hereda las amistades del anterior");
+
+
+    int gemela = red.registrarUsuario(String("Ana Torres"), String("ana.gemela@correo.com"),
+                                      Fecha(2023, 4, 9));
+    comprobar(gemela > 0, "se admite un segundo usuario con el mismo nombre");
+    red.buscarPorNombre(String("Ana Torres"), encontrados);
+    comprobar(encontrados.tamanio() == 2, "el AVL devuelve los dos homonimos");
+    comprobar(red.eliminarUsuario(gemela), "se elimina uno de los homonimos");
+    red.buscarPorNombre(String("Ana Torres"), encontrados);
+    comprobar(encontrados.tamanio() == 1, "al quitar el homonimo queda solo el original");
 }
 
 
@@ -626,6 +636,30 @@ void probarGeneradorSintetico() {
 
     comprobar(red.cantidadUsuariosActivos() == 30000, "se generaron todos los usuarios");
     comprobar(red.cantidadPublicacionesActivas() == 20000, "se generaron las publicaciones");
+
+
+    TablaHash<String, int> nombresVistos;
+    nombresVistos.reservarPara(30000);
+    int repetidos = 0;
+    bool tresPalabras = true;
+    for (int i = 0; i < red.cantidadPosicionesUsuario(); ++i) {
+        const Usuario& usuario = red.usuarioEnIndice(i);
+        if (!usuario.activo) continue;
+
+        if (nombresVistos.buscar(usuario.nombre) != nullptr) {
+            ++repetidos;
+        } else {
+            nombresVistos.insertar(usuario.nombre, i);
+        }
+
+        int espacios = 0;
+        for (int k = 0; k < usuario.nombre.longitud(); ++k) {
+            if (usuario.nombre[k] == ' ') ++espacios;
+        }
+        if (espacios != 2) tresPalabras = false;
+    }
+    comprobar(repetidos == 0, "ningun usuario generado repite el nombre completo");
+    comprobar(tresPalabras, "el nombre lleva nombre de pila y dos apellidos");
 
     const GrafoAmistades& grafo = red.grafo();
     comprobar(grafo.gradoPromedio() > 5.0 && grafo.gradoPromedio() < 14.0,
