@@ -1,6 +1,54 @@
+# ============================================================================
+#  Compilacion en Linux y en Windows 11.
+#
+#  Linux / macOS / WSL:      make
+#  Windows con MSYS2, MinGW64 o Git Bash:      make
+#  Windows con cmd.exe o PowerShell (MinGW-w64):      mingw32-make
+#
+#  Objetivos:  todo (por defecto) · ejecutar · probar · banco · limpiar
+#              entorno   muestra el sistema y el compilador detectados
+# ============================================================================
+
 CXX      := g++
 CXXFLAGS := -std=c++17 -O2 -Wall -Wextra
 DIR_OBJ  := build
+
+# --- Deteccion del sistema --------------------------------------------------
+# En Windows la variable OS siempre vale Windows_NT, tanto en cmd.exe como
+# dentro de MSYS2 o Git Bash. MSYSTEM solo esta definida en esos entornos tipo
+# Unix, y es lo que distingue si podemos usar mkdir -p y rm -rf.
+ifeq ($(OS),Windows_NT)
+    SUFIJO := .exe
+    LDFLAGS += -static-libgcc -static-libstdc++
+    ifdef MSYSTEM
+        ENTORNO := Windows-MSYS
+    else
+        ENTORNO := Windows-cmd
+        USA_CMD := 1
+        SHELL := cmd.exe
+        .SHELLFLAGS := /C
+    endif
+else
+    SUFIJO :=
+    ENTORNO := $(shell uname -s)
+endif
+
+# --- Ordenes que cambian segun el interprete de comandos --------------------
+ifdef USA_CMD
+    RUTA       = $(subst /,\,$(patsubst %/,%,$(1)))
+    CREAR_DIR  = @if not exist "$(call RUTA,$(1))" mkdir "$(call RUTA,$(1))"
+    BORRAR_DIR = @if exist "$(call RUTA,$(1))" rmdir /s /q "$(call RUTA,$(1))"
+    BORRAR     = @if exist $(1) del /q $(1)
+    PREFIJO    :=
+else
+    CREAR_DIR  = @mkdir -p $(1)
+    BORRAR_DIR = @rm -rf $(1)
+    BORRAR     = @rm -f $(1)
+    PREFIJO    := ./
+endif
+
+BIN_SISTEMA := redsocial$(SUFIJO)
+BIN_PRUEBAS := pruebas_aed$(SUFIJO)
 
 FUENTES_NUCLEO := \
 	src/estructuras/String.cpp \
@@ -15,28 +63,36 @@ FUENTES_NUCLEO := \
 
 OBJETOS_NUCLEO := $(patsubst %.cpp,$(DIR_OBJ)/%.o,$(FUENTES_NUCLEO))
 
-.PHONY: todo ejecutar probar banco limpiar
+.PHONY: todo ejecutar probar banco limpiar entorno
 
-todo: redsocial pruebas_aed
+todo: $(BIN_SISTEMA) $(BIN_PRUEBAS)
 
-redsocial: $(OBJETOS_NUCLEO) $(DIR_OBJ)/src/main.o
-	$(CXX) $(CXXFLAGS) -o $@ $^
+$(BIN_SISTEMA): $(OBJETOS_NUCLEO) $(DIR_OBJ)/src/main.o
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
-pruebas_aed: $(OBJETOS_NUCLEO) $(DIR_OBJ)/pruebas/pruebas.o
-	$(CXX) $(CXXFLAGS) -o $@ $^
+$(BIN_PRUEBAS): $(OBJETOS_NUCLEO) $(DIR_OBJ)/pruebas/pruebas.o
+	$(CXX) $(CXXFLAGS) -o $@ $^ $(LDFLAGS)
 
 $(DIR_OBJ)/%.o: %.cpp
-	@mkdir -p $(dir $@)
+	$(call CREAR_DIR,$(dir $@))
 	$(CXX) $(CXXFLAGS) -c $< -o $@
 
-ejecutar: redsocial
-	./redsocial
+ejecutar: $(BIN_SISTEMA)
+	$(PREFIJO)$(BIN_SISTEMA)
 
-probar: pruebas_aed
-	./pruebas_aed
+probar: $(BIN_PRUEBAS)
+	$(PREFIJO)$(BIN_PRUEBAS)
 
-banco: redsocial
-	./redsocial --banco --maximo 1000000
+banco: $(BIN_SISTEMA)
+	$(PREFIJO)$(BIN_SISTEMA) --banco --maximo 1000000
 
 limpiar:
-	rm -rf $(DIR_OBJ) redsocial pruebas_aed *.csv
+	$(call BORRAR_DIR,$(DIR_OBJ))
+	$(call BORRAR,$(BIN_SISTEMA))
+	$(call BORRAR,$(BIN_PRUEBAS))
+	$(call BORRAR,*.csv)
+
+entorno:
+	@echo Entorno .... $(ENTORNO)
+	@echo Compilador . $(CXX)
+	@echo Binarios ... $(BIN_SISTEMA) $(BIN_PRUEBAS)
