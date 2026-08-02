@@ -31,7 +31,7 @@ namespace
             "  --amistades M       Amistades por usuario nuevo, modelo Barabasi-Albert\n"
             "                      (por defecto 8; el total de aristas es aprox. N*M)\n"
             "  --publicaciones P   Cantidad de publicaciones (por defecto 2*N)\n"
-            "  --semilla S         Semilla del generador aleatorio (datos reproducibles)\n"
+            "  --semilla S        ` Semilla del generador aleatorio (datos reproducibles)\n"
             "  --vacia             No genera datos: la red arranca sin usuarios\n"
             "  --banco             Ejecuta solo el banco de pruebas y termina\n"
             "  --maximo N          Escala maxima del banco de pruebas\n"
