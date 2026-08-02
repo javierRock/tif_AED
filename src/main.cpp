@@ -1,13 +1,5 @@
 
 
-
-
-
-
-
-
-
-
 #include <cstdio>
 #include <cstdlib>
 #include <cstring>
@@ -20,95 +12,119 @@
 
 using namespace aed;
 
-namespace {
+namespace
+{
 
-struct OpcionesDeLinea {
-    ParametrosGeneracion generacion;
-    bool soloBancoDePruebas = false;
-    bool arrancarVacia = false;
-    int maximoDelBanco = 1000000;
-};
+    struct OpcionesDeLinea
+    {
+        ParametrosGeneracion generacion;
+        bool soloBancoDePruebas = false;
+        bool arrancarVacia = false;
+        int maximoDelBanco = 1000000;
+    };
 
-void mostrarAyuda() {
-    std::printf(
-        "\nRED SOCIAL - Proyecto Final de Algoritmos y Estructuras de Datos\n\n"
-        "  --usuarios N        Cantidad de usuarios a generar (por defecto 100000)\n"
-        "  --amistades M       Amistades por usuario nuevo, modelo Barabasi-Albert\n"
-        "                      (por defecto 8; el total de aristas es aprox. N*M)\n"
-        "  --publicaciones P   Cantidad de publicaciones (por defecto 2*N)\n"
-        "  --semilla S         Semilla del generador aleatorio (datos reproducibles)\n"
-        "  --vacia             No genera datos: la red arranca sin usuarios\n"
-        "  --banco             Ejecuta solo el banco de pruebas y termina\n"
-        "  --maximo N          Escala maxima del banco de pruebas\n"
-        "  --ayuda             Muestra este mensaje\n\n");
-}
+    void mostrarAyuda()
+    {
+        std::printf(
+            "\nRED SOCIAL - Proyecto Final de Algoritmos y Estructuras de Datos\n\n"
+            "  --usuarios N        Cantidad de usuarios a generar (por defecto 100000)\n"
+            "  --amistades M       Amistades por usuario nuevo, modelo Barabasi-Albert\n"
+            "                      (por defecto 8; el total de aristas es aprox. N*M)\n"
+            "  --publicaciones P   Cantidad de publicaciones (por defecto 2*N)\n"
+            "  --semilla S         Semilla del generador aleatorio (datos reproducibles)\n"
+            "  --vacia             No genera datos: la red arranca sin usuarios\n"
+            "  --banco             Ejecuta solo el banco de pruebas y termina\n"
+            "  --maximo N          Escala maxima del banco de pruebas\n"
+            "  --ayuda             Muestra este mensaje\n\n");
+    }
 
+    bool interpretarArgumentos(int cantidad, char **argumentos, OpcionesDeLinea &opciones)
+    {
+        bool publicacionesIndicadas = false;
 
-bool interpretarArgumentos(int cantidad, char** argumentos, OpcionesDeLinea& opciones) {
-    bool publicacionesIndicadas = false;
+        for (int i = 1; i < cantidad; ++i)
+        {
+            const char *actual = argumentos[i];
+            bool quedaValor = (i + 1 < cantidad);
 
-    for (int i = 1; i < cantidad; ++i) {
-        const char* actual = argumentos[i];
-        bool quedaValor = (i + 1 < cantidad);
-
-        if (std::strcmp(actual, "--ayuda") == 0 || std::strcmp(actual, "-h") == 0) {
-            mostrarAyuda();
-            return false;
-        } else if (std::strcmp(actual, "--vacia") == 0) {
-            opciones.arrancarVacia = true;
-        } else if (std::strcmp(actual, "--banco") == 0) {
-            opciones.soloBancoDePruebas = true;
-        } else if (std::strcmp(actual, "--usuarios") == 0 && quedaValor) {
-            opciones.generacion.cantidadUsuarios = std::atoi(argumentos[++i]);
-        } else if (std::strcmp(actual, "--amistades") == 0 && quedaValor) {
-            opciones.generacion.amistadesPorUsuario = std::atoi(argumentos[++i]);
-        } else if (std::strcmp(actual, "--publicaciones") == 0 && quedaValor) {
-            opciones.generacion.cantidadPublicaciones = std::atoi(argumentos[++i]);
-            publicacionesIndicadas = true;
-        } else if (std::strcmp(actual, "--semilla") == 0 && quedaValor) {
-            opciones.generacion.semilla =
-                static_cast<unsigned long long>(std::atoll(argumentos[++i]));
-        } else if (std::strcmp(actual, "--maximo") == 0 && quedaValor) {
-            opciones.maximoDelBanco = std::atoi(argumentos[++i]);
-        } else {
-            std::printf("Argumento no reconocido: %s\n", actual);
-            mostrarAyuda();
-            return false;
+            if (std::strcmp(actual, "--ayuda") == 0 || std::strcmp(actual, "-h") == 0)
+            {
+                mostrarAyuda();
+                return false;
+            }
+            else if (std::strcmp(actual, "--vacia") == 0)
+            {
+                opciones.arrancarVacia = true;
+            }
+            else if (std::strcmp(actual, "--banco") == 0)
+            {
+                opciones.soloBancoDePruebas = true;
+            }
+            else if (std::strcmp(actual, "--usuarios") == 0 && quedaValor)
+            {
+                opciones.generacion.cantidadUsuarios = std::atoi(argumentos[++i]);
+            }
+            else if (std::strcmp(actual, "--amistades") == 0 && quedaValor)
+            {
+                opciones.generacion.amistadesPorUsuario = std::atoi(argumentos[++i]);
+            }
+            else if (std::strcmp(actual, "--publicaciones") == 0 && quedaValor)
+            {
+                opciones.generacion.cantidadPublicaciones = std::atoi(argumentos[++i]);
+                publicacionesIndicadas = true;
+            }
+            else if (std::strcmp(actual, "--semilla") == 0 && quedaValor)
+            {
+                opciones.generacion.semilla =
+                    static_cast<unsigned long long>(std::atoll(argumentos[++i]));
+            }
+            else if (std::strcmp(actual, "--maximo") == 0 && quedaValor)
+            {
+                opciones.maximoDelBanco = std::atoi(argumentos[++i]);
+            }
+            else
+            {
+                std::printf("Argumento no reconocido: %s\n", actual);
+                mostrarAyuda();
+                return false;
+            }
         }
+
+        if (!publicacionesIndicadas)
+        {
+            opciones.generacion.cantidadPublicaciones = opciones.generacion.cantidadUsuarios * 2;
+        }
+        return true;
     }
 
+    void mostrarResumenDeCarga(const RedSocial &red, double segundos)
+    {
+        const GrafoAmistades &grafo = red.grafo();
+        double megas = static_cast<double>(red.memoriaAproximadaBytes()) / (1024.0 * 1024.0);
 
-    if (!publicacionesIndicadas) {
-        opciones.generacion.cantidadPublicaciones = opciones.generacion.cantidadUsuarios * 2;
+        std::printf("\n  Datos generados en %.2f segundos\n", segundos);
+        std::printf("  ------------------------------------------------------------\n");
+        std::printf("   Usuarios ............ %d\n", red.cantidadUsuariosActivos());
+        std::printf("   Amistades ........... %lld\n", grafo.cantidadAristas());
+        std::printf("   Grado promedio ...... %.2f  (maximo: %d)\n", grafo.gradoPromedio(),
+                    grafo.gradoMaximo());
+        std::printf("   Publicaciones ....... %d\n", red.cantidadPublicacionesActivas());
+        std::printf("   Memoria aproximada .. %.1f MB\n", megas);
+        std::printf("  ------------------------------------------------------------\n\n");
     }
-    return true;
-}
-
-void mostrarResumenDeCarga(const RedSocial& red, double segundos) {
-    const GrafoAmistades& grafo = red.grafo();
-    double megas = static_cast<double>(red.memoriaAproximadaBytes()) / (1024.0 * 1024.0);
-
-    std::printf("\n  Datos generados en %.2f segundos\n", segundos);
-    std::printf("  ------------------------------------------------------------\n");
-    std::printf("   Usuarios ............ %d\n", red.cantidadUsuariosActivos());
-    std::printf("   Amistades ........... %lld\n", grafo.cantidadAristas());
-    std::printf("   Grado promedio ...... %.2f  (maximo: %d)\n", grafo.gradoPromedio(),
-                grafo.gradoMaximo());
-    std::printf("   Publicaciones ....... %d\n", red.cantidadPublicacionesActivas());
-    std::printf("   Memoria aproximada .. %.1f MB\n", megas);
-    std::printf("  ------------------------------------------------------------\n\n");
-}
 
 }
 
-int main(int cantidadArgumentos, char** argumentos) {
+int main(int cantidadArgumentos, char **argumentos)
+{
     OpcionesDeLinea opciones;
     opciones.generacion.cantidadUsuarios = 100000;
 
-    if (!interpretarArgumentos(cantidadArgumentos, argumentos, opciones)) return 0;
+    if (!interpretarArgumentos(cantidadArgumentos, argumentos, opciones))
+        return 0;
 
-
-    if (opciones.soloBancoDePruebas) {
+    if (opciones.soloBancoDePruebas)
+    {
         std::printf("\n  BANCO DE PRUEBAS DE RENDIMIENTO\n");
         std::printf("  ------------------------------------------------------------\n");
         BancoPruebas::ejecutarSerieDeEscalas(opciones.maximoDelBanco, "benchmark.csv");
@@ -117,17 +133,8 @@ int main(int cantidadArgumentos, char** argumentos) {
 
     RedSocial red;
 
-    if (!opciones.arrancarVacia) {
-        long long combinaciones = GeneradorSintetico::combinacionesDeNombre();
-        if (opciones.generacion.cantidadUsuarios > combinaciones) {
-            std::printf(
-                "\n  No se pueden generar %d usuarios con nombres distintos.\n"
-                "  Los catalogos de nombres y apellidos dan para %lld combinaciones.\n"
-                "  Reduce --usuarios o amplia NOMBRES/APELLIDOS en GeneradorSintetico.cpp.\n\n",
-                opciones.generacion.cantidadUsuarios, combinaciones);
-            return 1;
-        }
-
+    if (!opciones.arrancarVacia)
+    {
         std::printf("\n  Generando datos sinteticos (%d usuarios, %d publicaciones)...\n",
                     opciones.generacion.cantidadUsuarios,
                     opciones.generacion.cantidadPublicaciones);

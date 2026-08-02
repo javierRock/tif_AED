@@ -2,467 +2,543 @@
 
 #include "../estructuras/MonticuloMinimo.h"
 
-namespace aed {
+namespace aed
+{
 
-namespace {
+    namespace
+    {
 
+        struct RecolectorAlfabetico
+        {
+            Arreglo<int> *destino;
+            int limite;
 
+            bool operator()(const String &, const Arreglo<int> &indices)
+            {
+                for (int i = 0; i < indices.tamanio(); ++i)
+                {
+                    if (destino->tamanio() >= limite)
+                        return false;
+                    destino->agregar(indices[i]);
+                }
+                return destino->tamanio() < limite;
+            }
+        };
 
-struct RecolectorAlfabetico {
-    Arreglo<int>* destino;
-    int limite;
+    }
 
-    bool operator()(const String&  , const Arreglo<int>& indices) {
-        for (int i = 0; i < indices.tamanio(); ++i) {
-            if (destino->tamanio() >= limite) return false;
-            destino->agregar(indices[i]);
+    RedSocial::RedSocial()
+        : _indicePorId(1024),
+          _indicePorCorreo(1024),
+          _indicePublicacionPorId(1024),
+          _siguienteIdUsuario(1),
+          _siguienteIdPublicacion(1),
+          _siguienteIdComentario(1),
+          _usuariosActivos(0),
+          _publicacionesActivas(0),
+          _indicesDeTextoActivos(true) {}
+
+    int RedSocial::indiceDeUsuario(int id) const
+    {
+        const int *indice = _indicePorId.buscar(id);
+        return (indice == nullptr) ? -1 : *indice;
+    }
+
+    int RedSocial::registrarUsuario(const String &nombre, const String &correo,
+                                    const Fecha &fechaRegistro)
+    {
+
+        if (correo.vacia() || _indicePorCorreo.contiene(correo))
+            return -1;
+
+        int id = _siguienteIdUsuario++;
+        int indice;
+
+        if (!_posicionesLibres.vacio())
+        {
+            indice = _posicionesLibres.ultimo();
+            _posicionesLibres.quitarUltimo();
+            _usuarios[indice] = Usuario(id, nombre, correo, fechaRegistro);
         }
-        return destino->tamanio() < limite;
+        else
+        {
+            indice = _usuarios.tamanio();
+            _usuarios.agregar(Usuario(id, nombre, correo, fechaRegistro));
+        }
+        while (_grafo.cantidadNodos() <= indice)
+            _grafo.agregarNodo();
+
+        _indicePorId.insertar(id, indice);
+        _indicePorCorreo.insertar(correo, indice);
+        if (_indicesDeTextoActivos)
+            indexarTextos(indice);
+
+        ++_usuariosActivos;
+        return id;
     }
-};
 
-}
+    bool RedSocial::eliminarUsuario(int id)
+    {
+        int indice = indiceDeUsuario(id);
+        if (indice < 0)
+            return false;
+        Usuario &usuario = _usuarios[indice];
+        if (!usuario.activo)
+            return false;
 
-RedSocial::RedSocial()
-    : _indicePorId(1024),
-      _indicePorCorreo(1024),
-      _indicePublicacionPorId(1024),
-      _siguienteIdUsuario(1),
-      _siguienteIdPublicacion(1),
-      _siguienteIdComentario(1),
-      _usuariosActivos(0),
-      _publicacionesActivas(0),
-      _indicesDeTextoActivos(true) {}
+        for (int i = 0; i < usuario.indicesPublicaciones.tamanio(); ++i)
+        {
+            Publicacion &publicacion = _publicaciones[usuario.indicesPublicaciones[i]];
+            if (!publicacion.activa)
+                continue;
+            publicacion.activa = false;
+            publicacion.comentarios.limpiar();
+            publicacion.texto.limpiar();
+            _indicePublicacionPorId.eliminar(publicacion.id);
+            --_publicacionesActivas;
+        }
+        usuario.indicesPublicaciones.liberar();
 
-int RedSocial::indiceDeUsuario(int id) const {
-    const int* indice = _indicePorId.buscar(id);
-    return (indice == nullptr) ? -1 : *indice;
-}
+        const Arreglo<int> &amigos = _grafo.vecinos(indice);
+        for (int i = 0; i < amigos.tamanio(); ++i)
+        {
+            Usuario &amigo = _usuarios[amigos[i]];
+            if (amigo.cantidadAmigos > 0)
+                --amigo.cantidadAmigos;
+            if (amigo.cantidadSeguidores > 0)
+                --amigo.cantidadSeguidores;
+        }
+        _grafo.aislarNodo(indice);
 
+        if (_indicesDeTextoActivos)
+            desindexarTextos(indice);
+        _indicePorId.eliminar(id);
+        _indicePorCorreo.eliminar(usuario.correo);
 
-
-
-int RedSocial::registrarUsuario(const String& nombre, const String& correo,
-                                const Fecha& fechaRegistro) {
-
-    if (correo.vacia() || _indicePorCorreo.contiene(correo)) return -1;
-
-    int id = _siguienteIdUsuario++;
-    int indice;
-
-
-
-    if (!_posicionesLibres.vacio()) {
-        indice = _posicionesLibres.ultimo();
-        _posicionesLibres.quitarUltimo();
-        _usuarios[indice] = Usuario(id, nombre, correo, fechaRegistro);
-    } else {
-        indice = _usuarios.tamanio();
-        _usuarios.agregar(Usuario(id, nombre, correo, fechaRegistro));
+        usuario.activo = false;
+        usuario.cantidadAmigos = 0;
+        usuario.nombre.limpiar();
+        usuario.correo.limpiar();
+        _posicionesLibres.agregar(indice);
+        --_usuariosActivos;
+        return true;
     }
-    while (_grafo.cantidadNodos() <= indice) _grafo.agregarNodo();
 
-    _indicePorId.insertar(id, indice);
-    _indicePorCorreo.insertar(correo, indice);
-    if (_indicesDeTextoActivos) indexarTextos(indice);
+    Usuario *RedSocial::buscarPorId(int id)
+    {
+        int indice = indiceDeUsuario(id);
+        if (indice < 0)
+            return nullptr;
+        return _usuarios[indice].activo ? &_usuarios[indice] : nullptr;
+    }
 
-    ++_usuariosActivos;
-    return id;
-}
+    Usuario *RedSocial::buscarPorCorreo(const String &correo)
+    {
+        const int *indice = _indicePorCorreo.buscar(correo);
+        if (indice == nullptr)
+            return nullptr;
+        return _usuarios[*indice].activo ? &_usuarios[*indice] : nullptr;
+    }
 
-bool RedSocial::eliminarUsuario(int id) {
-    int indice = indiceDeUsuario(id);
-    if (indice < 0) return false;
-    Usuario& usuario = _usuarios[indice];
-    if (!usuario.activo) return false;
+    void RedSocial::buscarPorNombre(const String &nombre, Arreglo<int> &indices)
+    {
+        indices.limpiar();
+        const Arreglo<int> *encontrados = _indicePorNombre.buscar(nombre);
+        if (encontrados == nullptr)
+            return;
+        for (int i = 0; i < encontrados->tamanio(); ++i)
+        {
+            int indice = (*encontrados)[i];
+            if (_usuarios[indice].activo)
+                indices.agregar(indice);
+        }
+    }
 
+    void RedSocial::buscarPorPrefijo(const String &prefijo, int limite, Arreglo<int> &indices)
+    {
 
-    for (int i = 0; i < usuario.indicesPublicaciones.tamanio(); ++i) {
-        Publicacion& publicacion = _publicaciones[usuario.indicesPublicaciones[i]];
-        if (!publicacion.activa) continue;
+        _indicePrefijos.buscarPorPrefijo(prefijo, limite * 4 + 16, indices);
+
+        int escritura = 0;
+        for (int i = 0; i < indices.tamanio() && escritura < limite; ++i)
+        {
+            int indice = indices[i];
+            if (!_usuarios[indice].activo)
+                continue;
+
+            bool repetido = false;
+            for (int k = 0; k < escritura; ++k)
+            {
+                if (indices[k] == indice)
+                {
+                    repetido = true;
+                    break;
+                }
+            }
+            if (!repetido)
+                indices[escritura++] = indice;
+        }
+        indices.redimensionar(escritura);
+    }
+
+    void RedSocial::listarEnOrdenAlfabetico(int limite, Arreglo<int> &indices)
+    {
+        indices.limpiar();
+        if (limite <= 0)
+            return;
+        RecolectorAlfabetico recolector{&indices, limite};
+        _indicePorNombre.recorrerEnOrden(recolector);
+    }
+
+    void RedSocial::indexarTextos(int indice)
+    {
+        const String &nombre = _usuarios[indice].nombre;
+        if (nombre.vacia())
+            return;
+
+        Arreglo<int> &homonimos = _indicePorNombre.obtenerOInsertar(nombre, Arreglo<int>());
+        homonimos.agregar(indice);
+
+        _indicePrefijos.insertar(nombre, indice);
+        porCadaPalabra(nombre, [&](const String &palabra)
+                       {
+        if (!(palabra == nombre)) _indicePrefijos.insertar(palabra, indice); });
+    }
+
+    void RedSocial::desindexarTextos(int indice)
+    {
+        const String &nombre = _usuarios[indice].nombre;
+        if (nombre.vacia())
+            return;
+
+        Arreglo<int> *homonimos = _indicePorNombre.buscar(nombre);
+        if (homonimos != nullptr)
+        {
+            int posicion = homonimos->buscar(indice);
+            if (posicion >= 0)
+                homonimos->eliminarRapido(posicion);
+            if (homonimos->vacio())
+                _indicePorNombre.eliminar(nombre);
+        }
+
+        _indicePrefijos.eliminar(nombre, indice);
+        porCadaPalabra(nombre, [&](const String &palabra)
+                       {
+        if (!(palabra == nombre)) _indicePrefijos.eliminar(palabra, indice); });
+    }
+
+    bool RedSocial::agregarAmigo(int idA, int idB)
+    {
+        int a = indiceDeUsuario(idA);
+        int b = indiceDeUsuario(idB);
+        if (a < 0 || b < 0 || a == b)
+            return false;
+        if (!_usuarios[a].activo || !_usuarios[b].activo)
+            return false;
+        if (!_grafo.agregarArista(a, b))
+            return false;
+
+        ++_usuarios[a].cantidadAmigos;
+        ++_usuarios[b].cantidadAmigos;
+        ++_usuarios[a].cantidadSeguidores;
+        ++_usuarios[b].cantidadSeguidores;
+        return true;
+    }
+
+    bool RedSocial::eliminarAmigo(int idA, int idB)
+    {
+        int a = indiceDeUsuario(idA);
+        int b = indiceDeUsuario(idB);
+        if (a < 0 || b < 0)
+            return false;
+        if (!_grafo.eliminarArista(a, b))
+            return false;
+
+        if (_usuarios[a].cantidadAmigos > 0)
+            --_usuarios[a].cantidadAmigos;
+        if (_usuarios[b].cantidadAmigos > 0)
+            --_usuarios[b].cantidadAmigos;
+        if (_usuarios[a].cantidadSeguidores > 0)
+            --_usuarios[a].cantidadSeguidores;
+        if (_usuarios[b].cantidadSeguidores > 0)
+            --_usuarios[b].cantidadSeguidores;
+        return true;
+    }
+
+    bool RedSocial::sonAmigos(int idA, int idB)
+    {
+        int a = indiceDeUsuario(idA);
+        int b = indiceDeUsuario(idB);
+        if (a < 0 || b < 0)
+            return false;
+        return _grafo.sonAdyacentes(a, b);
+    }
+
+    bool RedSocial::caminoDeAmistad(int idA, int idB, Arreglo<int> &indicesDelCamino)
+    {
+        int a = indiceDeUsuario(idA);
+        int b = indiceDeUsuario(idB);
+        if (a < 0 || b < 0)
+        {
+            indicesDelCamino.limpiar();
+            return false;
+        }
+        return _grafo.caminoMasCorto(a, b, indicesDelCamino);
+    }
+
+    void RedSocial::amigosEnComun(int idA, int idB, Arreglo<int> &indicesComunes)
+    {
+        int a = indiceDeUsuario(idA);
+        int b = indiceDeUsuario(idB);
+        if (a < 0 || b < 0)
+        {
+            indicesComunes.limpiar();
+            return;
+        }
+        _grafo.amigosEnComun(a, b, indicesComunes);
+    }
+
+    void RedSocial::sugerenciasDeAmistad(int id, int cantidad,
+                                         Arreglo<SugerenciaAmistad> &sugerencias)
+    {
+        int indice = indiceDeUsuario(id);
+        if (indice < 0)
+        {
+            sugerencias.limpiar();
+            return;
+        }
+        _grafo.sugerirAmistades(indice, cantidad, sugerencias);
+    }
+
+    void RedSocial::amigosDe(int id, Arreglo<int> &indicesAmigos)
+    {
+        indicesAmigos.limpiar();
+        int indice = indiceDeUsuario(id);
+        if (indice < 0)
+            return;
+
+        const Arreglo<int> &lista = _grafo.vecinos(indice);
+        indicesAmigos.reservar(lista.tamanio());
+        for (int i = 0; i < lista.tamanio(); ++i)
+            indicesAmigos.agregar(lista[i]);
+    }
+
+    int RedSocial::crearPublicacion(int idAutor, const String &texto, const Fecha &fecha)
+    {
+        int indiceAutor = indiceDeUsuario(idAutor);
+        if (indiceAutor < 0 || !_usuarios[indiceAutor].activo)
+            return -1;
+
+        int id = _siguienteIdPublicacion++;
+        int indice = _publicaciones.tamanio();
+        _publicaciones.agregar(Publicacion(id, idAutor, fecha, texto));
+
+        _usuarios[indiceAutor].indicesPublicaciones.agregar(indice);
+        _indicePublicacionPorId.insertar(id, indice);
+        ++_publicacionesActivas;
+        return id;
+    }
+
+    bool RedSocial::eliminarPublicacion(int idPublicacion)
+    {
+        const int *posicion = _indicePublicacionPorId.buscar(idPublicacion);
+        if (posicion == nullptr)
+            return false;
+
+        int indice = *posicion;
+        Publicacion &publicacion = _publicaciones[indice];
+        if (!publicacion.activa)
+            return false;
+
+        int indiceAutor = indiceDeUsuario(publicacion.idPropietario);
+        if (indiceAutor >= 0)
+        {
+            Usuario &autor = _usuarios[indiceAutor];
+            int posicionEnAutor = autor.indicesPublicaciones.buscar(indice);
+            if (posicionEnAutor >= 0)
+                autor.indicesPublicaciones.eliminarRapido(posicionEnAutor);
+
+            autor.reaccionesRecibidas -= publicacion.totalReacciones();
+            if (autor.reaccionesRecibidas < 0)
+                autor.reaccionesRecibidas = 0;
+        }
+
         publicacion.activa = false;
         publicacion.comentarios.limpiar();
         publicacion.texto.limpiar();
-        _indicePublicacionPorId.eliminar(publicacion.id);
+        _indicePublicacionPorId.eliminar(idPublicacion);
         --_publicacionesActivas;
+        return true;
     }
-    usuario.indicesPublicaciones.liberar();
 
-
-
-
-    const Arreglo<int>& amigos = _grafo.vecinos(indice);
-    for (int i = 0; i < amigos.tamanio(); ++i) {
-        Usuario& amigo = _usuarios[amigos[i]];
-        if (amigo.cantidadAmigos > 0) --amigo.cantidadAmigos;
-        if (amigo.cantidadSeguidores > 0) --amigo.cantidadSeguidores;
+    Publicacion *RedSocial::buscarPublicacion(int idPublicacion)
+    {
+        const int *indice = _indicePublicacionPorId.buscar(idPublicacion);
+        if (indice == nullptr)
+            return nullptr;
+        return _publicaciones[*indice].activa ? &_publicaciones[*indice] : nullptr;
     }
-    _grafo.aislarNodo(indice);
 
-
-    if (_indicesDeTextoActivos) desindexarTextos(indice);
-    _indicePorId.eliminar(id);
-    _indicePorCorreo.eliminar(usuario.correo);
-
-
-    usuario.activo = false;
-    usuario.cantidadAmigos = 0;
-    usuario.nombre.limpiar();
-    usuario.correo.limpiar();
-    _posicionesLibres.agregar(indice);
-    --_usuariosActivos;
-    return true;
-}
-
-Usuario* RedSocial::buscarPorId(int id) {
-    int indice = indiceDeUsuario(id);
-    if (indice < 0) return nullptr;
-    return _usuarios[indice].activo ? &_usuarios[indice] : nullptr;
-}
-
-Usuario* RedSocial::buscarPorCorreo(const String& correo) {
-    const int* indice = _indicePorCorreo.buscar(correo);
-    if (indice == nullptr) return nullptr;
-    return _usuarios[*indice].activo ? &_usuarios[*indice] : nullptr;
-}
-
-void RedSocial::buscarPorNombre(const String& nombre, Arreglo<int>& indices) {
-    indices.limpiar();
-    const Arreglo<int>* encontrados = _indicePorNombre.buscar(nombre);
-    if (encontrados == nullptr) return;
-    for (int i = 0; i < encontrados->tamanio(); ++i) {
-        int indice = (*encontrados)[i];
-        if (_usuarios[indice].activo) indices.agregar(indice);
+    bool RedSocial::darLike(int idPublicacion)
+    {
+        return agregarLikes(idPublicacion, 1);
     }
-}
 
-void RedSocial::buscarPorPrefijo(const String& prefijo, int limite, Arreglo<int>& indices) {
+    bool RedSocial::agregarLikes(int idPublicacion, int cantidad)
+    {
+        if (cantidad <= 0)
+            return false;
+        Publicacion *publicacion = buscarPublicacion(idPublicacion);
+        if (publicacion == nullptr)
+            return false;
 
+        publicacion->numeroLikes += cantidad;
+        int indiceAutor = indiceDeUsuario(publicacion->idPropietario);
+        if (indiceAutor >= 0)
+            _usuarios[indiceAutor].reaccionesRecibidas += cantidad;
+        return true;
+    }
 
-    _indicePrefijos.buscarPorPrefijo(prefijo, limite * 4 + 16, indices);
+    int RedSocial::comentarPublicacion(int idPublicacion, int idAutor, const String &texto,
+                                       const Fecha &fecha)
+    {
+        Publicacion *publicacion = buscarPublicacion(idPublicacion);
+        if (publicacion == nullptr)
+            return -1;
 
-    int escritura = 0;
-    for (int i = 0; i < indices.tamanio() && escritura < limite; ++i) {
-        int indice = indices[i];
-        if (!_usuarios[indice].activo) continue;
+        int indiceAutor = indiceDeUsuario(idAutor);
+        if (indiceAutor < 0 || !_usuarios[indiceAutor].activo)
+            return -1;
 
-        bool repetido = false;
-        for (int k = 0; k < escritura; ++k) {
-            if (indices[k] == indice) {
-                repetido = true;
-                break;
+        int idComentario = _siguienteIdComentario++;
+        publicacion->comentarios.agregarAlFinal(Comentario(idComentario, idAutor, fecha, texto));
+        ++_usuarios[indiceAutor].comentariosRealizados;
+
+        int indicePropietario = indiceDeUsuario(publicacion->idPropietario);
+        if (indicePropietario >= 0)
+            ++_usuarios[indicePropietario].reaccionesRecibidas;
+        return idComentario;
+    }
+
+    void RedSocial::publicacionesDe(int idUsuario, Arreglo<int> &indicesPublicaciones)
+    {
+        indicesPublicaciones.limpiar();
+        int indice = indiceDeUsuario(idUsuario);
+        if (indice < 0)
+            return;
+
+        const Arreglo<int> &lista = _usuarios[indice].indicesPublicaciones;
+        for (int i = 0; i < lista.tamanio(); ++i)
+        {
+            if (_publicaciones[lista[i]].activa)
+                indicesPublicaciones.agregar(lista[i]);
+        }
+    }
+
+    void RedSocial::usuariosMasActivos(int cantidad, Arreglo<ElementoRanking> &ranking)
+    {
+        ranking.limpiar();
+        if (cantidad <= 0)
+            return;
+
+        MonticuloMinimo<ElementoRanking> mejores(cantidad);
+        for (int i = 0; i < _usuarios.tamanio(); ++i)
+        {
+            if (!_usuarios[i].activo)
+                continue;
+            ElementoRanking candidato(i, _usuarios[i].puntajeActividad());
+
+            if (mejores.tamanio() < cantidad)
+            {
+                mejores.insertar(candidato);
+            }
+            else if (mejores.minimo() < candidato)
+            {
+
+                mejores.reemplazarMinimo(candidato);
             }
         }
-        if (!repetido) indices[escritura++] = indice;
-    }
-    indices.redimensionar(escritura);
-}
-
-void RedSocial::listarEnOrdenAlfabetico(int limite, Arreglo<int>& indices) {
-    indices.limpiar();
-    if (limite <= 0) return;
-    RecolectorAlfabetico recolector{&indices, limite};
-    _indicePorNombre.recorrerEnOrden(recolector);
-}
-
-void RedSocial::indexarTextos(int indice) {
-    const String& nombre = _usuarios[indice].nombre;
-    if (nombre.vacia()) return;
-
-
-
-    Arreglo<int>& homonimos = _indicePorNombre.obtenerOInsertar(nombre, Arreglo<int>());
-    homonimos.agregar(indice);
-
-
-
-    porCadaPalabra(nombre, [&](const String& palabra) {
-        _indicePrefijos.insertar(palabra, indice);
-    });
-}
-
-void RedSocial::desindexarTextos(int indice) {
-    const String& nombre = _usuarios[indice].nombre;
-    if (nombre.vacia()) return;
-
-    Arreglo<int>* homonimos = _indicePorNombre.buscar(nombre);
-    if (homonimos != nullptr) {
-        int posicion = homonimos->buscar(indice);
-        if (posicion >= 0) homonimos->eliminarRapido(posicion);
-        if (homonimos->vacio()) _indicePorNombre.eliminar(nombre);
+        mejores.volcarDeMayorAMenor(ranking);
     }
 
-    porCadaPalabra(nombre, [&](const String& palabra) {
-        _indicePrefijos.eliminar(palabra, indice);
-    });
-}
+    void RedSocial::publicacionesConMasReacciones(int cantidad, Arreglo<ElementoRanking> &ranking)
+    {
+        ranking.limpiar();
+        if (cantidad <= 0)
+            return;
 
+        MonticuloMinimo<ElementoRanking> mejores(cantidad);
+        for (int i = 0; i < _publicaciones.tamanio(); ++i)
+        {
+            if (!_publicaciones[i].activa)
+                continue;
+            ElementoRanking candidato(i, _publicaciones[i].totalReacciones());
 
-
-
-bool RedSocial::agregarAmigo(int idA, int idB) {
-    int a = indiceDeUsuario(idA);
-    int b = indiceDeUsuario(idB);
-    if (a < 0 || b < 0 || a == b) return false;
-    if (!_usuarios[a].activo || !_usuarios[b].activo) return false;
-    if (!_grafo.agregarArista(a, b)) return false;
-
-
-
-    ++_usuarios[a].cantidadAmigos;
-    ++_usuarios[b].cantidadAmigos;
-    ++_usuarios[a].cantidadSeguidores;
-    ++_usuarios[b].cantidadSeguidores;
-    return true;
-}
-
-bool RedSocial::eliminarAmigo(int idA, int idB) {
-    int a = indiceDeUsuario(idA);
-    int b = indiceDeUsuario(idB);
-    if (a < 0 || b < 0) return false;
-    if (!_grafo.eliminarArista(a, b)) return false;
-
-    if (_usuarios[a].cantidadAmigos > 0) --_usuarios[a].cantidadAmigos;
-    if (_usuarios[b].cantidadAmigos > 0) --_usuarios[b].cantidadAmigos;
-    if (_usuarios[a].cantidadSeguidores > 0) --_usuarios[a].cantidadSeguidores;
-    if (_usuarios[b].cantidadSeguidores > 0) --_usuarios[b].cantidadSeguidores;
-    return true;
-}
-
-bool RedSocial::sonAmigos(int idA, int idB) {
-    int a = indiceDeUsuario(idA);
-    int b = indiceDeUsuario(idB);
-    if (a < 0 || b < 0) return false;
-    return _grafo.sonAdyacentes(a, b);
-}
-
-bool RedSocial::caminoDeAmistad(int idA, int idB, Arreglo<int>& indicesDelCamino) {
-    int a = indiceDeUsuario(idA);
-    int b = indiceDeUsuario(idB);
-    if (a < 0 || b < 0) {
-        indicesDelCamino.limpiar();
-        return false;
-    }
-    return _grafo.caminoMasCorto(a, b, indicesDelCamino);
-}
-
-void RedSocial::amigosEnComun(int idA, int idB, Arreglo<int>& indicesComunes) {
-    int a = indiceDeUsuario(idA);
-    int b = indiceDeUsuario(idB);
-    if (a < 0 || b < 0) {
-        indicesComunes.limpiar();
-        return;
-    }
-    _grafo.amigosEnComun(a, b, indicesComunes);
-}
-
-void RedSocial::sugerenciasDeAmistad(int id, int cantidad,
-                                     Arreglo<SugerenciaAmistad>& sugerencias) {
-    int indice = indiceDeUsuario(id);
-    if (indice < 0) {
-        sugerencias.limpiar();
-        return;
-    }
-    _grafo.sugerirAmistades(indice, cantidad, sugerencias);
-}
-
-void RedSocial::amigosDe(int id, Arreglo<int>& indicesAmigos) {
-    indicesAmigos.limpiar();
-    int indice = indiceDeUsuario(id);
-    if (indice < 0) return;
-
-    const Arreglo<int>& lista = _grafo.vecinos(indice);
-    indicesAmigos.reservar(lista.tamanio());
-    for (int i = 0; i < lista.tamanio(); ++i) indicesAmigos.agregar(lista[i]);
-}
-
-
-
-
-int RedSocial::crearPublicacion(int idAutor, const String& texto, const Fecha& fecha) {
-    int indiceAutor = indiceDeUsuario(idAutor);
-    if (indiceAutor < 0 || !_usuarios[indiceAutor].activo) return -1;
-
-    int id = _siguienteIdPublicacion++;
-    int indice = _publicaciones.tamanio();
-    _publicaciones.agregar(Publicacion(id, idAutor, fecha, texto));
-
-    _usuarios[indiceAutor].indicesPublicaciones.agregar(indice);
-    _indicePublicacionPorId.insertar(id, indice);
-    ++_publicacionesActivas;
-    return id;
-}
-
-bool RedSocial::eliminarPublicacion(int idPublicacion) {
-    const int* posicion = _indicePublicacionPorId.buscar(idPublicacion);
-    if (posicion == nullptr) return false;
-
-    int indice = *posicion;
-    Publicacion& publicacion = _publicaciones[indice];
-    if (!publicacion.activa) return false;
-
-
-    int indiceAutor = indiceDeUsuario(publicacion.idPropietario);
-    if (indiceAutor >= 0) {
-        Usuario& autor = _usuarios[indiceAutor];
-        int posicionEnAutor = autor.indicesPublicaciones.buscar(indice);
-        if (posicionEnAutor >= 0) autor.indicesPublicaciones.eliminarRapido(posicionEnAutor);
-
-        autor.reaccionesRecibidas -= publicacion.totalReacciones();
-        if (autor.reaccionesRecibidas < 0) autor.reaccionesRecibidas = 0;
+            if (mejores.tamanio() < cantidad)
+            {
+                mejores.insertar(candidato);
+            }
+            else if (mejores.minimo() < candidato)
+            {
+                mejores.reemplazarMinimo(candidato);
+            }
+        }
+        mejores.volcarDeMayorAMenor(ranking);
     }
 
-    publicacion.activa = false;
-    publicacion.comentarios.limpiar();
-    publicacion.texto.limpiar();
-    _indicePublicacionPorId.eliminar(idPublicacion);
-    --_publicacionesActivas;
-    return true;
-}
+    long long RedSocial::memoriaAproximadaBytes() const
+    {
+        long long total = 0;
 
-Publicacion* RedSocial::buscarPublicacion(int idPublicacion) {
-    const int* indice = _indicePublicacionPorId.buscar(idPublicacion);
-    if (indice == nullptr) return nullptr;
-    return _publicaciones[*indice].activa ? &_publicaciones[*indice] : nullptr;
-}
+        total += static_cast<long long>(_usuarios.capacidad()) * sizeof(Usuario);
+        for (int i = 0; i < _usuarios.tamanio(); ++i)
+        {
+            total += _usuarios[i].nombre.capacidad() + 1;
+            total += _usuarios[i].correo.capacidad() + 1;
+            total += static_cast<long long>(_usuarios[i].indicesPublicaciones.capacidad()) * sizeof(int);
+        }
 
-bool RedSocial::darLike(int idPublicacion) {
-    return agregarLikes(idPublicacion, 1);
-}
+        total += static_cast<long long>(_publicaciones.capacidad()) * sizeof(Publicacion);
+        for (int i = 0; i < _publicaciones.tamanio(); ++i)
+        {
+            total += _publicaciones[i].texto.capacidad() + 1;
+            total += static_cast<long long>(_publicaciones[i].numeroComentarios()) *
+                     (sizeof(Comentario) + 8);
+        }
 
-bool RedSocial::agregarLikes(int idPublicacion, int cantidad) {
-    if (cantidad <= 0) return false;
-    Publicacion* publicacion = buscarPublicacion(idPublicacion);
-    if (publicacion == nullptr) return false;
-
-    publicacion->numeroLikes += cantidad;
-    int indiceAutor = indiceDeUsuario(publicacion->idPropietario);
-    if (indiceAutor >= 0) _usuarios[indiceAutor].reaccionesRecibidas += cantidad;
-    return true;
-}
-
-int RedSocial::comentarPublicacion(int idPublicacion, int idAutor, const String& texto,
-                                   const Fecha& fecha) {
-    Publicacion* publicacion = buscarPublicacion(idPublicacion);
-    if (publicacion == nullptr) return -1;
-
-    int indiceAutor = indiceDeUsuario(idAutor);
-    if (indiceAutor < 0 || !_usuarios[indiceAutor].activo) return -1;
-
-    int idComentario = _siguienteIdComentario++;
-    publicacion->comentarios.agregarAlFinal(Comentario(idComentario, idAutor, fecha, texto));
-    ++_usuarios[indiceAutor].comentariosRealizados;
-
-    int indicePropietario = indiceDeUsuario(publicacion->idPropietario);
-    if (indicePropietario >= 0) ++_usuarios[indicePropietario].reaccionesRecibidas;
-    return idComentario;
-}
-
-void RedSocial::publicacionesDe(int idUsuario, Arreglo<int>& indicesPublicaciones) {
-    indicesPublicaciones.limpiar();
-    int indice = indiceDeUsuario(idUsuario);
-    if (indice < 0) return;
-
-    const Arreglo<int>& lista = _usuarios[indice].indicesPublicaciones;
-    for (int i = 0; i < lista.tamanio(); ++i) {
-        if (_publicaciones[lista[i]].activa) indicesPublicaciones.agregar(lista[i]);
+        total += _grafo.memoriaAproximadaBytes();
+        total += static_cast<long long>(_indicePorId.capacidad()) * (sizeof(int) * 2 + 1);
+        total += static_cast<long long>(_indicePorCorreo.capacidad()) * (sizeof(String) + sizeof(int) + 1);
+        total += static_cast<long long>(_indicePublicacionPorId.capacidad()) * (sizeof(int) * 2 + 1);
+        total += static_cast<long long>(_indicePrefijos.cantidadNodos()) * 96;
+        return total;
     }
-}
 
-
-
-
-
-
-
-
-
-void RedSocial::usuariosMasActivos(int cantidad, Arreglo<ElementoRanking>& ranking) {
-    ranking.limpiar();
-    if (cantidad <= 0) return;
-
-    MonticuloMinimo<ElementoRanking> mejores(cantidad);
-    for (int i = 0; i < _usuarios.tamanio(); ++i) {
-        if (!_usuarios[i].activo) continue;
-        ElementoRanking candidato(i, _usuarios[i].puntajeActividad());
-
-        if (mejores.tamanio() < cantidad) {
-            mejores.insertar(candidato);
-        } else if (mejores.minimo() < candidato) {
-
-            mejores.reemplazarMinimo(candidato);
+    void RedSocial::reservarCapacidad(int usuariosEsperados, int publicacionesEsperadas)
+    {
+        if (usuariosEsperados > 0)
+        {
+            _usuarios.reservar(usuariosEsperados);
+            _indicePorId.reservarPara(usuariosEsperados);
+            _indicePorCorreo.reservarPara(usuariosEsperados);
+        }
+        if (publicacionesEsperadas > 0)
+        {
+            _publicaciones.reservar(publicacionesEsperadas);
+            _indicePublicacionPorId.reservarPara(publicacionesEsperadas);
         }
     }
-    mejores.volcarDeMayorAMenor(ranking);
-}
 
-void RedSocial::publicacionesConMasReacciones(int cantidad, Arreglo<ElementoRanking>& ranking) {
-    ranking.limpiar();
-    if (cantidad <= 0) return;
-
-    MonticuloMinimo<ElementoRanking> mejores(cantidad);
-    for (int i = 0; i < _publicaciones.tamanio(); ++i) {
-        if (!_publicaciones[i].activa) continue;
-        ElementoRanking candidato(i, _publicaciones[i].totalReacciones());
-
-        if (mejores.tamanio() < cantidad) {
-            mejores.insertar(candidato);
-        } else if (mejores.minimo() < candidato) {
-            mejores.reemplazarMinimo(candidato);
+    void RedSocial::sincronizarContadoresDeAmigos()
+    {
+        for (int i = 0; i < _usuarios.tamanio(); ++i)
+        {
+            if (!_usuarios[i].activo)
+                continue;
+            int grado = _grafo.grado(i);
+            _usuarios[i].cantidadAmigos = grado;
+            _usuarios[i].cantidadSeguidores += grado;
         }
     }
-    mejores.volcarDeMayorAMenor(ranking);
-}
-
-
-
-
-long long RedSocial::memoriaAproximadaBytes() const {
-    long long total = 0;
-
-    total += static_cast<long long>(_usuarios.capacidad()) * sizeof(Usuario);
-    for (int i = 0; i < _usuarios.tamanio(); ++i) {
-        total += _usuarios[i].nombre.capacidad() + 1;
-        total += _usuarios[i].correo.capacidad() + 1;
-        total += static_cast<long long>(_usuarios[i].indicesPublicaciones.capacidad()) * sizeof(int);
-    }
-
-    total += static_cast<long long>(_publicaciones.capacidad()) * sizeof(Publicacion);
-    for (int i = 0; i < _publicaciones.tamanio(); ++i) {
-        total += _publicaciones[i].texto.capacidad() + 1;
-        total += static_cast<long long>(_publicaciones[i].numeroComentarios()) *
-                 (sizeof(Comentario) + 8);
-    }
-
-    total += _grafo.memoriaAproximadaBytes();
-    total += static_cast<long long>(_indicePorId.capacidad()) * (sizeof(int) * 2 + 1);
-    total += static_cast<long long>(_indicePorCorreo.capacidad()) * (sizeof(String) + sizeof(int) + 1);
-    total += static_cast<long long>(_indicePublicacionPorId.capacidad()) * (sizeof(int) * 2 + 1);
-    total += static_cast<long long>(_indicePrefijos.cantidadNodos()) * 96;
-    total += static_cast<long long>(_indicePorNombre.tamanio()) *
-             (sizeof(String) + sizeof(Arreglo<int>) + 48);
-    return total;
-}
-
-void RedSocial::reservarCapacidad(int usuariosEsperados, int publicacionesEsperadas) {
-    if (usuariosEsperados > 0) {
-        _usuarios.reservar(usuariosEsperados);
-        _indicePorId.reservarPara(usuariosEsperados);
-        _indicePorCorreo.reservarPara(usuariosEsperados);
-    }
-    if (publicacionesEsperadas > 0) {
-        _publicaciones.reservar(publicacionesEsperadas);
-        _indicePublicacionPorId.reservarPara(publicacionesEsperadas);
-    }
-}
-
-void RedSocial::sincronizarContadoresDeAmigos() {
-    for (int i = 0; i < _usuarios.tamanio(); ++i) {
-        if (!_usuarios[i].activo) continue;
-        int grado = _grafo.grado(i);
-        _usuarios[i].cantidadAmigos = grado;
-        _usuarios[i].cantidadSeguidores += grado;
-    }
-}
 
 }

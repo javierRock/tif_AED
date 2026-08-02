@@ -2,303 +2,364 @@
 
 #include "../sistema/RedSocial.h"
 
-namespace aed {
+namespace aed
+{
 
-namespace {
-const int TAMANIO_BUFFER = 64 * 1024;
-}
-
-
-
-
-LectorCSV::LectorCSV()
-    : _archivo(nullptr), _buffer(nullptr), _bytesEnBuffer(0), _posicion(0) {}
-
-LectorCSV::~LectorCSV() {
-    cerrar();
-}
-
-bool LectorCSV::abrir(const char* ruta) {
-    cerrar();
-    _archivo = std::fopen(ruta, "rb");
-    if (_archivo == nullptr) return false;
-    _buffer = new char[TAMANIO_BUFFER];
-    _bytesEnBuffer = 0;
-    _posicion = 0;
-    return true;
-}
-
-void LectorCSV::cerrar() {
-    if (_archivo != nullptr) {
-        std::fclose(_archivo);
-        _archivo = nullptr;
+    namespace
+    {
+        const int TAMANIO_BUFFER = 64 * 1024;
     }
-    delete[] _buffer;
-    _buffer = nullptr;
-    _bytesEnBuffer = 0;
-    _posicion = 0;
-}
 
-int LectorCSV::siguienteCaracter() {
+    LectorCSV::LectorCSV()
+        : _archivo(nullptr), _buffer(nullptr), _bytesEnBuffer(0), _posicion(0) {}
 
-    if (_posicion >= _bytesEnBuffer) {
-        _bytesEnBuffer = static_cast<int>(
-            std::fread(_buffer, 1, static_cast<unsigned long>(TAMANIO_BUFFER), _archivo));
+    LectorCSV::~LectorCSV()
+    {
+        cerrar();
+    }
+
+    bool LectorCSV::abrir(const char *ruta)
+    {
+        cerrar();
+        _archivo = std::fopen(ruta, "rb");
+        if (_archivo == nullptr)
+            return false;
+        _buffer = new char[TAMANIO_BUFFER];
+        _bytesEnBuffer = 0;
         _posicion = 0;
-        if (_bytesEnBuffer <= 0) return -1;
+        return true;
     }
-    return static_cast<unsigned char>(_buffer[_posicion++]);
-}
 
-bool LectorCSV::leerFila(Arreglo<String>& campos) {
-    if (_archivo == nullptr) return false;
-
-    campos.limpiar();
-    String actual;
-    bool hayContenido = false;
-
-    while (true) {
-        int caracter = siguienteCaracter();
-
-        if (caracter == -1) {
-            if (!hayContenido) return false;
-            campos.agregar(mover(actual));
-            return true;
+    void LectorCSV::cerrar()
+    {
+        if (_archivo != nullptr)
+        {
+            std::fclose(_archivo);
+            _archivo = nullptr;
         }
-        if (caracter == '\n') {
-            campos.agregar(mover(actual));
-            return true;
+        delete[] _buffer;
+        _buffer = nullptr;
+        _bytesEnBuffer = 0;
+        _posicion = 0;
+    }
+
+    int LectorCSV::siguienteCaracter()
+    {
+
+        if (_posicion >= _bytesEnBuffer)
+        {
+            _bytesEnBuffer = static_cast<int>(
+                std::fread(_buffer, 1, static_cast<unsigned long>(TAMANIO_BUFFER), _archivo));
+            _posicion = 0;
+            if (_bytesEnBuffer <= 0)
+                return -1;
         }
-        if (caracter == '\r') continue;
+        return static_cast<unsigned char>(_buffer[_posicion++]);
+    }
 
-        hayContenido = true;
-        if (caracter == ',') {
-            campos.agregar(mover(actual));
-            actual = String();
-        } else {
-            actual.agregar(static_cast<char>(caracter));
+    bool LectorCSV::leerFila(Arreglo<String> &campos)
+    {
+        if (_archivo == nullptr)
+            return false;
+
+        campos.limpiar();
+        String actual;
+        bool hayContenido = false;
+
+        while (true)
+        {
+            int caracter = siguienteCaracter();
+
+            if (caracter == -1)
+            {
+                if (!hayContenido)
+                    return false;
+                campos.agregar(mover(actual));
+                return true;
+            }
+            if (caracter == '\n')
+            {
+                campos.agregar(mover(actual));
+                return true;
+            }
+            if (caracter == '\r')
+                continue;
+
+            hayContenido = true;
+            if (caracter == ',')
+            {
+                campos.agregar(mover(actual));
+                actual = String();
+            }
+            else
+            {
+                actual.agregar(static_cast<char>(caracter));
+            }
         }
     }
-}
 
+    EscritorCSV::EscritorCSV() : _archivo(nullptr), _primerCampoDeLaFila(true) {}
 
-
-
-EscritorCSV::EscritorCSV() : _archivo(nullptr), _primerCampoDeLaFila(true) {}
-
-EscritorCSV::~EscritorCSV() {
-    cerrar();
-}
-
-bool EscritorCSV::abrir(const char* ruta) {
-    cerrar();
-    _archivo = std::fopen(ruta, "wb");
-    _primerCampoDeLaFila = true;
-    return _archivo != nullptr;
-}
-
-void EscritorCSV::cerrar() {
-    if (_archivo != nullptr) {
-        std::fclose(_archivo);
-        _archivo = nullptr;
+    EscritorCSV::~EscritorCSV()
+    {
+        cerrar();
     }
-}
 
-void EscritorCSV::escribirSeparador() {
-    if (!_primerCampoDeLaFila) std::fputc(',', _archivo);
-    _primerCampoDeLaFila = false;
-}
-
-void EscritorCSV::campo(const String& texto) {
-    if (_archivo == nullptr) return;
-    escribirSeparador();
-
-    for (int i = 0; i < texto.longitud(); ++i) {
-        char c = texto[i];
-        if (c == ',' || c == '\n' || c == '\r') c = ' ';
-        std::fputc(c, _archivo);
+    bool EscritorCSV::abrir(const char *ruta)
+    {
+        cerrar();
+        _archivo = std::fopen(ruta, "wb");
+        _primerCampoDeLaFila = true;
+        return _archivo != nullptr;
     }
-}
 
-void EscritorCSV::campo(const char* texto) {
-    campo(String(texto));
-}
-
-void EscritorCSV::campo(long long numero) {
-    if (_archivo == nullptr) return;
-    escribirSeparador();
-    std::fprintf(_archivo, "%lld", numero);
-}
-
-void EscritorCSV::finDeFila() {
-    if (_archivo == nullptr) return;
-    std::fputc('\n', _archivo);
-    _primerCampoDeLaFila = true;
-}
-
-
-
-
-namespace archivo {
-
-bool guardarUsuarios(const RedSocial& red, const char* ruta) {
-    EscritorCSV escritor;
-    if (!escritor.abrir(ruta)) return false;
-
-    escritor.campo("id");
-    escritor.campo("nombre");
-    escritor.campo("correo");
-    escritor.campo("fecha_registro");
-    escritor.campo("seguidores");
-    escritor.campo("reacciones_recibidas");
-    escritor.campo("comentarios_realizados");
-    escritor.finDeFila();
-
-    for (int i = 0; i < red.cantidadPosicionesUsuario(); ++i) {
-        const Usuario& usuario = red.usuarioEnIndice(i);
-        if (!usuario.activo) continue;
-
-        escritor.campo(usuario.id);
-        escritor.campo(usuario.nombre);
-        escritor.campo(usuario.correo);
-        escritor.campo(usuario.fechaRegistro.aTexto());
-        escritor.campo(usuario.cantidadSeguidores);
-        escritor.campo(usuario.reaccionesRecibidas);
-        escritor.campo(usuario.comentariosRealizados);
-        escritor.finDeFila();
+    void EscritorCSV::cerrar()
+    {
+        if (_archivo != nullptr)
+        {
+            std::fclose(_archivo);
+            _archivo = nullptr;
+        }
     }
-    return true;
-}
 
-bool guardarAmistades(const RedSocial& red, const char* ruta) {
-    EscritorCSV escritor;
-    if (!escritor.abrir(ruta)) return false;
+    void EscritorCSV::escribirSeparador()
+    {
+        if (!_primerCampoDeLaFila)
+            std::fputc(',', _archivo);
+        _primerCampoDeLaFila = false;
+    }
 
-    escritor.campo("id_a");
-    escritor.campo("id_b");
-    escritor.finDeFila();
+    void EscritorCSV::campo(const String &texto)
+    {
+        if (_archivo == nullptr)
+            return;
+        escribirSeparador();
 
-    const GrafoAmistades& grafo = red.grafo();
-    for (int i = 0; i < grafo.cantidadNodos(); ++i) {
-        const Usuario& usuario = red.usuarioEnIndice(i);
-        if (!usuario.activo) continue;
+        for (int i = 0; i < texto.longitud(); ++i)
+        {
+            char c = texto[i];
+            if (c == ',' || c == '\n' || c == '\r')
+                c = ' ';
+            std::fputc(c, _archivo);
+        }
+    }
 
-        const Arreglo<int>& amigos = grafo.vecinos(i);
-        for (int k = 0; k < amigos.tamanio(); ++k) {
+    void EscritorCSV::campo(const char *texto)
+    {
+        campo(String(texto));
+    }
 
-            if (amigos[k] <= i) continue;
-            escritor.campo(usuario.id);
-            escritor.campo(red.usuarioEnIndice(amigos[k]).id);
+    void EscritorCSV::campo(long long numero)
+    {
+        if (_archivo == nullptr)
+            return;
+        escribirSeparador();
+        std::fprintf(_archivo, "%lld", numero);
+    }
+
+    void EscritorCSV::finDeFila()
+    {
+        if (_archivo == nullptr)
+            return;
+        std::fputc('\n', _archivo);
+        _primerCampoDeLaFila = true;
+    }
+
+    namespace archivo
+    {
+
+        bool guardarUsuarios(const RedSocial &red, const char *ruta)
+        {
+            EscritorCSV escritor;
+            if (!escritor.abrir(ruta))
+                return false;
+
+            escritor.campo("id");
+            escritor.campo("nombre");
+            escritor.campo("correo");
+            escritor.campo("fecha_registro");
+            escritor.campo("seguidores");
+            escritor.campo("reacciones_recibidas");
+            escritor.campo("comentarios_realizados");
             escritor.finDeFila();
+
+            for (int i = 0; i < red.cantidadPosicionesUsuario(); ++i)
+            {
+                const Usuario &usuario = red.usuarioEnIndice(i);
+                if (!usuario.activo)
+                    continue;
+
+                escritor.campo(usuario.id);
+                escritor.campo(usuario.nombre);
+                escritor.campo(usuario.correo);
+                escritor.campo(usuario.fechaRegistro.aTexto());
+                escritor.campo(usuario.cantidadSeguidores);
+                escritor.campo(usuario.reaccionesRecibidas);
+                escritor.campo(usuario.comentariosRealizados);
+                escritor.finDeFila();
+            }
+            return true;
         }
-    }
-    return true;
-}
 
-bool guardarPublicaciones(const RedSocial& red, const char* ruta) {
-    EscritorCSV escritor;
-    if (!escritor.abrir(ruta)) return false;
+        bool guardarAmistades(const RedSocial &red, const char *ruta)
+        {
+            EscritorCSV escritor;
+            if (!escritor.abrir(ruta))
+                return false;
 
-    escritor.campo("id");
-    escritor.campo("id_autor");
-    escritor.campo("fecha");
-    escritor.campo("likes");
-    escritor.campo("comentarios");
-    escritor.campo("texto");
-    escritor.finDeFila();
+            escritor.campo("id_a");
+            escritor.campo("id_b");
+            escritor.finDeFila();
 
-    for (int i = 0; i < red.cantidadPosicionesPublicacion(); ++i) {
-        const Publicacion& publicacion = red.publicacionEnIndice(i);
-        if (!publicacion.activa) continue;
+            const GrafoAmistades &grafo = red.grafo();
+            for (int i = 0; i < grafo.cantidadNodos(); ++i)
+            {
+                const Usuario &usuario = red.usuarioEnIndice(i);
+                if (!usuario.activo)
+                    continue;
 
-        escritor.campo(publicacion.id);
-        escritor.campo(publicacion.idPropietario);
-        escritor.campo(publicacion.fecha.aTexto());
-        escritor.campo(publicacion.numeroLikes);
-        escritor.campo(publicacion.numeroComentarios());
-        escritor.campo(publicacion.texto);
-        escritor.finDeFila();
-    }
-    return true;
-}
+                const Arreglo<int> &amigos = grafo.vecinos(i);
+                for (int k = 0; k < amigos.tamanio(); ++k)
+                {
 
-
-bool cargarUsuarios(RedSocial& red, const char* ruta) {
-    LectorCSV lector;
-    if (!lector.abrir(ruta)) return false;
-
-    Arreglo<String> campos;
-    bool esCabecera = true;
-
-    while (lector.leerFila(campos)) {
-        if (esCabecera) {
-            esCabecera = false;
-            continue;
+                    if (amigos[k] <= i)
+                        continue;
+                    escritor.campo(usuario.id);
+                    escritor.campo(red.usuarioEnIndice(amigos[k]).id);
+                    escritor.finDeFila();
+                }
+            }
+            return true;
         }
-        if (campos.tamanio() < 4) continue;
 
-        int id = red.registrarUsuario(campos[1], campos[2], Fecha::desdeTexto(campos[3]));
-        if (id < 0) continue;
+        bool guardarPublicaciones(const RedSocial &red, const char *ruta)
+        {
+            EscritorCSV escritor;
+            if (!escritor.abrir(ruta))
+                return false;
 
-        Usuario* usuario = red.buscarPorId(id);
-        if (usuario == nullptr) continue;
-        if (campos.tamanio() > 4) usuario->cantidadSeguidores = static_cast<int>(campos[4].aEntero());
-        if (campos.tamanio() > 5) usuario->reaccionesRecibidas = campos[5].aEntero();
-        if (campos.tamanio() > 6) usuario->comentariosRealizados = static_cast<int>(campos[6].aEntero());
-    }
-    return true;
-}
+            escritor.campo("id");
+            escritor.campo("id_autor");
+            escritor.campo("fecha");
+            escritor.campo("likes");
+            escritor.campo("comentarios");
+            escritor.campo("texto");
+            escritor.finDeFila();
 
-bool cargarAmistades(RedSocial& red, const char* ruta) {
-    LectorCSV lector;
-    if (!lector.abrir(ruta)) return false;
+            for (int i = 0; i < red.cantidadPosicionesPublicacion(); ++i)
+            {
+                const Publicacion &publicacion = red.publicacionEnIndice(i);
+                if (!publicacion.activa)
+                    continue;
 
-    Arreglo<String> campos;
-    bool esCabecera = true;
-
-
-
-    while (lector.leerFila(campos)) {
-        if (esCabecera) {
-            esCabecera = false;
-            continue;
+                escritor.campo(publicacion.id);
+                escritor.campo(publicacion.idPropietario);
+                escritor.campo(publicacion.fecha.aTexto());
+                escritor.campo(publicacion.numeroLikes);
+                escritor.campo(publicacion.numeroComentarios());
+                escritor.campo(publicacion.texto);
+                escritor.finDeFila();
+            }
+            return true;
         }
-        if (campos.tamanio() < 2) continue;
 
-        int indiceA = red.indiceDeUsuario(static_cast<int>(campos[0].aEntero()));
-        int indiceB = red.indiceDeUsuario(static_cast<int>(campos[1].aEntero()));
-        if (indiceA < 0 || indiceB < 0) continue;
-        red.grafo().agregarAristaSinOrdenar(indiceA, indiceB);
-    }
-    red.grafo().ordenarYLimpiarListas();
-    red.sincronizarContadoresDeAmigos();
-    return true;
-}
+        bool cargarUsuarios(RedSocial &red, const char *ruta)
+        {
+            LectorCSV lector;
+            if (!lector.abrir(ruta))
+                return false;
 
-bool cargarPublicaciones(RedSocial& red, const char* ruta) {
-    LectorCSV lector;
-    if (!lector.abrir(ruta)) return false;
+            Arreglo<String> campos;
+            bool esCabecera = true;
 
-    Arreglo<String> campos;
-    bool esCabecera = true;
+            while (lector.leerFila(campos))
+            {
+                if (esCabecera)
+                {
+                    esCabecera = false;
+                    continue;
+                }
+                if (campos.tamanio() < 4)
+                    continue;
 
-    while (lector.leerFila(campos)) {
-        if (esCabecera) {
-            esCabecera = false;
-            continue;
+                int id = red.registrarUsuario(campos[1], campos[2], Fecha::desdeTexto(campos[3]));
+                if (id < 0)
+                    continue;
+
+                Usuario *usuario = red.buscarPorId(id);
+                if (usuario == nullptr)
+                    continue;
+                if (campos.tamanio() > 4)
+                    usuario->cantidadSeguidores = static_cast<int>(campos[4].aEntero());
+                if (campos.tamanio() > 5)
+                    usuario->reaccionesRecibidas = campos[5].aEntero();
+                if (campos.tamanio() > 6)
+                    usuario->comentariosRealizados = static_cast<int>(campos[6].aEntero());
+            }
+            return true;
         }
-        if (campos.tamanio() < 6) continue;
 
-        int idAutor = static_cast<int>(campos[1].aEntero());
-        int idPublicacion = red.crearPublicacion(idAutor, campos[5], Fecha::desdeTexto(campos[2]));
-        if (idPublicacion < 0) continue;
+        bool cargarAmistades(RedSocial &red, const char *ruta)
+        {
+            LectorCSV lector;
+            if (!lector.abrir(ruta))
+                return false;
 
-        int likes = static_cast<int>(campos[3].aEntero());
-        if (likes > 0) red.agregarLikes(idPublicacion, likes);
+            Arreglo<String> campos;
+            bool esCabecera = true;
+
+            while (lector.leerFila(campos))
+            {
+                if (esCabecera)
+                {
+                    esCabecera = false;
+                    continue;
+                }
+                if (campos.tamanio() < 2)
+                    continue;
+
+                int indiceA = red.indiceDeUsuario(static_cast<int>(campos[0].aEntero()));
+                int indiceB = red.indiceDeUsuario(static_cast<int>(campos[1].aEntero()));
+                if (indiceA < 0 || indiceB < 0)
+                    continue;
+                red.grafo().agregarAristaSinOrdenar(indiceA, indiceB);
+            }
+            red.grafo().ordenarYLimpiarListas();
+            red.sincronizarContadoresDeAmigos();
+            return true;
+        }
+
+        bool cargarPublicaciones(RedSocial &red, const char *ruta)
+        {
+            LectorCSV lector;
+            if (!lector.abrir(ruta))
+                return false;
+
+            Arreglo<String> campos;
+            bool esCabecera = true;
+
+            while (lector.leerFila(campos))
+            {
+                if (esCabecera)
+                {
+                    esCabecera = false;
+                    continue;
+                }
+                if (campos.tamanio() < 6)
+                    continue;
+
+                int idAutor = static_cast<int>(campos[1].aEntero());
+                int idPublicacion = red.crearPublicacion(idAutor, campos[5], Fecha::desdeTexto(campos[2]));
+                if (idPublicacion < 0)
+                    continue;
+
+                int likes = static_cast<int>(campos[3].aEntero());
+                if (likes > 0)
+                    red.agregarLikes(idPublicacion, likes);
+            }
+            return true;
+        }
+
     }
-    return true;
-}
-
-}
 
 }

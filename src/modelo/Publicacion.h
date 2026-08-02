@@ -1,19 +1,5 @@
 
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 #pragma once
 
 #include "../estructuras/String.h"
@@ -21,29 +7,30 @@
 #include "Comentario.h"
 #include "Fecha.h"
 
-namespace aed {
+namespace aed
+{
 
-struct Publicacion {
-    int id = -1;
-    int idPropietario = -1;
-    Fecha fecha;
-    String texto;
-    int numeroLikes = 0;
-    ListaEnlazada<Comentario> comentarios;
-    bool activa = true;
+    struct Publicacion
+    {
+        int id = -1;
+        int idPropietario = -1;
+        Fecha fecha;
+        String texto;
+        int numeroLikes = 0;
+        ListaEnlazada<Comentario> comentarios;
+        bool activa = true;
 
-    Publicacion() = default;
+        Publicacion() = default;
 
-    Publicacion(int idPublicacion, int propietario, const Fecha& cuando, const String& contenido)
-        : id(idPublicacion), idPropietario(propietario), fecha(cuando), texto(contenido) {}
+        Publicacion(int idPublicacion, int propietario, const Fecha &cuando, const String &contenido)
+            : id(idPublicacion), idPropietario(propietario), fecha(cuando), texto(contenido) {}
 
-    int numeroComentarios() const { return comentarios.tamanio(); }
+        int numeroComentarios() const { return comentarios.tamanio(); }
 
-
-
-    long long totalReacciones() const {
-        return static_cast<long long>(numeroLikes) + comentarios.tamanio();
-    }
-};
+        long long totalReacciones() const
+        {
+            return static_cast<long long>(numeroLikes) + comentarios.tamanio();
+        }
+    };
 
 }
