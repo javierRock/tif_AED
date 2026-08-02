@@ -135,6 +135,17 @@ int main(int cantidadArgumentos, char **argumentos)
 
     if (!opciones.arrancarVacia)
     {
+        long long combinaciones = GeneradorSintetico::combinacionesDeNombre();
+        if (opciones.generacion.cantidadUsuarios > combinaciones)
+        {
+            std::printf(
+                "\n  No se pueden generar %d usuarios con nombres distintos.\n"
+                "  Los catalogos de nombres y apellidos dan para %lld combinaciones.\n"
+                "  Reduce --usuarios o amplia NOMBRES/APELLIDOS en GeneradorSintetico.cpp.\n\n",
+                opciones.generacion.cantidadUsuarios, combinaciones);
+            return 1;
+        }
+
         std::printf("\n  Generando datos sinteticos (%d usuarios, %d publicaciones)...\n",
                     opciones.generacion.cantidadUsuarios,
                     opciones.generacion.cantidadPublicaciones);
